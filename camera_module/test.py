@@ -26,7 +26,7 @@ def mkdir(folder_path):
     try:
         os.mkdir(folder_path)
     except FileExistsError as e:
-        print(e)
+        pass
 
 def main(_argv):
     mkdir(FLAGS.destination_dir)
@@ -54,10 +54,14 @@ def main(_argv):
     else:
         print("[*] Cannot find ckpt from {}.".format(checkpoint_dir))
         exit()
-    with open('log.txt', 'a+') as log_txt:
+    with open('/content/drive/My Drive/data/log.txt', 'a+') as log_txt:
         total = 0
         processed_total = 0
-        for f in os.listdir(FLAGS.folder_path):
+        images = []
+        labels = []
+        CLASS_NAMES = np.array(os.listdir(FLAGS.folder_path))
+        CLASS_NAMES.sort()
+        for f in CLASS_NAMES:
             processed_image = 0
             items = os.listdir(FLAGS.folder_path+f)
             for path in items:
@@ -78,32 +82,40 @@ def main(_argv):
 
                 # recover padding effect
                 outputs = recover_pad_output(outputs, pad_params)
-                for prior_index in range(len(outputs)):
-                    ann = outputs[prior_index]
-                    b_box = int(ann[0] * frame_width), int(ann[1] * frame_height), \
-                            int(ann[2] * frame_width), int(ann[3] * frame_height)
-                    keypoints = {
-                        'left_eye': (int(ann[4] * frame_width),int(ann[5] * frame_height)),
-                        'right_eye': (int(ann[6] * frame_width),int(ann[7] * frame_height)),
-                    }
-                    # print(keypoints)
-                    out_frame = aligner.align(frame, keypoints, b_box)
-                    # cv2.imshow('original', frame)
-                    # cv2.imshow('aligned', out_frame)
-                    # if cv2.waitKey(0) & 0xFF == ord('q'):
-                    #     continue
-                    mkdir(FLAGS.destination_dir + f)
-                    try:
-                        cv2.imwrite(FLAGS.destination_dir + f +'/'+ path, out_frame)
-                        log_txt.write(FLAGS.destination_dir + f +'/'+ path+"\n")
-                        processed_image += 1
-                    except FileExistsError as e:
-                        print(e)
+                if len(outputs) < 1:
+                  continue
+                ann = max(outputs, key=lambda x: (x[2]-x[0])*(x[3]-x[1]))
+                b_box = int(ann[0] * frame_width), int(ann[1] * frame_height), \
+                        int(ann[2] * frame_width), int(ann[3] * frame_height)
+                if (b_box[0]<0) or (b_box[1]<0) or (b_box[2]>=frame_width) or (b_box[3]>=frame_height):
+                  continue
+                keypoints = {
+                    'left_eye': (int(ann[4] * frame_width),int(ann[5] * frame_height)),
+                    'right_eye': (int(ann[6] * frame_width),int(ann[7] * frame_height)),
+                }
+                # print(keypoints)
+                out_frame = aligner.align(frame, keypoints, b_box)
+                # cv2.imshow('original', frame)
+                # cv2.imshow('aligned', out_frame)
+                # if cv2.waitKey(0) & 0xFF == ord('q'):
+                #     continue
+                mkdir(FLAGS.destination_dir + f)
+                try:
+                    images.append(out_frame.reshape(1,112,112,3))
+                    labels.append((CLASS_NAMES == f).reshape(1,-1))
+                    log_txt.write(FLAGS.destination_dir + f +'/'+ path+"\n")
+                    processed_image += 1
+                except FileExistsError as e:
+                    pass
             log_txt.write(f + " Processed: " + str(processed_image) + ' / ' + str(len(items)) +"\n")
             total += len(items)
             processed_total += processed_image
         log_txt.write( "Processed total: " + str(processed_total) + ' / ' + str(total))
-
+        images_np = np.concatenate((tuple(images)), axis=0)
+        labels_np = np.concatenate((tuple(labels)), axis=0)
+        np.savez_compressed("/content/drive/My Drive/data/casia_image.npz", images_np)
+        np.savez_compressed("/content/drive/My Drive/data/casia_label.npz", labels_np)
+        print("Done")
 if __name__ == '__main__':
     try:
         app.run(main)
