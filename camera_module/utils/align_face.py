@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 
 class FaceAligner():
-    def __init__(self, desiredFaceSize=160):
+    def __init__(self, desiredFaceSize=112):
         self.desiredFaceSize = desiredFaceSize
 
     def __get_desiredLeftEye__(self, leftEye, rightEye, b_box):

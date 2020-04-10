@@ -54,18 +54,20 @@ def main(_argv):
     else:
         print("[*] Cannot find ckpt from {}.".format(checkpoint_dir))
         exit()
-    with open('/content/drive/My Drive/data/log.txt', 'a+') as log_txt:
+    with open(FLAGS.destination_dir+'log.txt', 'a+') as log_txt:
         total = 0
         processed_total = 0
-        images = []
-        labels = []
         CLASS_NAMES = np.array(os.listdir(FLAGS.folder_path))
         CLASS_NAMES.sort()
-        for f in CLASS_NAMES:
+        for f in CLASS_NAMES[1978:]:
             processed_image = 0
+            images = []
+            labels = []
             items = os.listdir(FLAGS.folder_path+f)
             for path in items:
                 frame = cv2.imread(FLAGS.folder_path + f +'/'+ path)
+                if frame is None:
+                  continue
                 frame_height, frame_width, _ = frame.shape
                 img = np.float32(frame.copy())
                 if FLAGS.down_scale_factor < 1.0:
@@ -99,7 +101,6 @@ def main(_argv):
                 # cv2.imshow('aligned', out_frame)
                 # if cv2.waitKey(0) & 0xFF == ord('q'):
                 #     continue
-                mkdir(FLAGS.destination_dir + f)
                 try:
                     images.append(out_frame.reshape(1,112,112,3))
                     labels.append((CLASS_NAMES == f).reshape(1,-1))
@@ -107,18 +108,19 @@ def main(_argv):
                     processed_image += 1
                 except FileExistsError as e:
                     pass
+            images_np = np.concatenate((tuple(images)), axis=0)
+            labels_np = np.concatenate((tuple(labels)), axis=0)
+            np.savez_compressed(FLAGS.destination_dir+"casia_image_{}.npz".format(f), images_np)
+            np.savez_compressed(FLAGS.destination_dir+"casia_label_{}.npz".format(f), labels_np)
+            print(f + " Done")
             log_txt.write(f + " Processed: " + str(processed_image) + ' / ' + str(len(items)) +"\n")
             total += len(items)
             processed_total += processed_image
         log_txt.write( "Processed total: " + str(processed_total) + ' / ' + str(total))
-        images_np = np.concatenate((tuple(images)), axis=0)
-        labels_np = np.concatenate((tuple(labels)), axis=0)
-        np.savez_compressed("/content/drive/My Drive/data/casia_image.npz", images_np)
-        np.savez_compressed("/content/drive/My Drive/data/casia_label.npz", labels_np)
-        print("Done")
 if __name__ == '__main__':
     try:
         app.run(main)
     except SystemExit:
         pass
 # align('/home/hao/DCLV-HK191/faces-gallery-ktx-500-nblur/','/home/hao/DCLV-HK191/processed_data/' )
+
