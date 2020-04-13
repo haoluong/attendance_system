@@ -26,7 +26,15 @@ flags.DEFINE_float('down_scale_factor', 1.0, 'down-scale factor for inputs')
 
 def classify(embed, anchors, labels):
     dis_ = np.sqrt(np.sum(np.square(anchors - embed),axis=1))
-    return labels[np.argmin(dis_)], np.amin(dis_)
+    min_dis_idx = np.argmin(dis_)
+    predict_label = labels[min_dis_idx]
+    same_label_idx = np.where(labels == predict_label)[0]
+    same_label_idx = np.delete(same_label_idx, np.where(same_label_idx == min_dis_idx)[0])
+    filter_dis = np.delete(dis_,same_label_idx)
+    func = np.vectorize(lambda x: np.exp(-x))
+    prob = np.exp(-dis_[min_dis_idx])/np.sum(func(filter_dis))
+    # return labels[np.argmin(dis_)], np.amin(dis_)
+    return predict_label, prob
 
 def send_msg(s, student_id):
     s.send('<MSG>student_id:{student_id},inKTX:True,detected_at:{detected_at}<MSG>'.format(student_id=student_id,detected_at= time.strftime('%Y-%m-%d %H:%M:%S')).encode('ascii'))
@@ -96,17 +104,18 @@ def main(_argv):
                 'right_eye': (int(ann[6] * frame_width),int(ann[7] * frame_height)),
             }
             out_frame = aligner.align(frame, keypoints, b_box)
-            scaled = cv2.resize(out_frame, (settings.IMAGE_SIZE, settings.IMAGE_SIZE), interpolation=cv2.INTER_CUBIC)
+            scaled = out_frame #cv2.resize(out_frame, (settings.IMAGE_SIZE, settings.IMAGE_SIZE), interpolation=cv2.INTER_CUBIC)
             scaled_reshape = scaled.reshape(-1, settings.IMAGE_SIZE, settings.IMAGE_SIZE, 3)
             embed_vector = mbv2(scaled_reshape/255.0)
-            label, distance = classify(embed_vector, anchor_dataset, label_dataset)
-            # cv2.imshow('Aligned', out_frame)
+            label, prob = classify(embed_vector, anchor_dataset, label_dataset)
+            if prob < 0.5:
+                label = "Unknown"
             start_new_thread(send_msg, (s, label,))
             cv2.rectangle(frame, (b_box[0], b_box[1]), (b_box[2], b_box[3]), (0, 255, 0), 2)
             cv2.putText(frame, label, (b_box[0], b_box[1]),
                         cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
 
-            text = "{:.4f}".format(distance)
+            text = "{:.4f}".format(prob)
             cv2.putText(frame, text, (b_box[0], b_box[1]+15),
                         cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
 

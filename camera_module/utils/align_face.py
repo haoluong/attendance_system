@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 
 class FaceAligner():
-    def __init__(self, desiredFaceSize=112):
+    def __init__(self, desiredFaceSize=160):
         self.desiredFaceSize = desiredFaceSize
 
     def __get_desiredLeftEye__(self, leftEye, rightEye, b_box):
@@ -31,7 +31,7 @@ class FaceAligner():
         angle = np.degrees(np.arctan2(dY, dX))
         if abs(angle) <= 20:
             croped_image = image[b_box[1]:b_box[3],b_box[0]:b_box[2], :]
-            return cv2.resize(croped_image, (112,112), interpolation=cv2.INTER_CUBIC)
+            return cv2.resize(croped_image, (self.desiredFaceSize,self.desiredFaceSize), interpolation=cv2.INTER_CUBIC)
         # compute the desired right eye x-coordinate based on the
         # desired x-coordinate of the left eye
         # desiredRightEyeX = 1.0 - self.desiredLeftEye[0]
