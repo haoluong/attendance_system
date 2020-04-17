@@ -65,14 +65,14 @@ def main(_argv):
     else:
         print("[*] Cannot find ckpt from {}.".format(checkpoint_dir))
         exit()
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(settings.RTSP_ADDR)
     mbv2 = mobilenet_v2.create_mbv2_model(image_shape=(settings.IMAGE_SIZE, settings.IMAGE_SIZE, 3))
     anchor_dataset = np.load(settings.ANCHOR_PATH)['arr_0']
     label_dataset = np.load(settings.LABEL_PATH)['arr_0']
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(("127.0.0.1", 45678))
     start_time = time.time()
-    while True:
+    while cam.isOpened():
         _, frame = cam.read()
         if frame is None:
             print("no cam input")
