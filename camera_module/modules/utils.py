@@ -102,3 +102,10 @@ def draw_anchor(img, prior, img_height, img_width):
     x2 = int(prior[0] * img_width + prior[2] * img_width / 2)
     y2 = int(prior[1] * img_height + prior[3] * img_height / 2)
     cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 0), 1)
+
+###############################################################################
+#   Utilize function                                                          #
+###############################################################################
+def preprocess_input(img):
+    return img/255
+

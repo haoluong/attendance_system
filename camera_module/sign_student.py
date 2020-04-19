@@ -13,6 +13,9 @@ def add_anchor(folder_path, student_id):
     for path in os.listdir(folder_path):
         frame = cv2.imread(folder_path + path)
         frame = cv2.flip(frame, 1)
+        ############
+        # Need modified for using
+        ############
         result = detector.detect_faces(frame)
         for person in result:
             b_box = person['box']

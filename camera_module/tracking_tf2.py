@@ -6,13 +6,13 @@ import numpy as np
 import tensorflow as tf
 import time
 from utils.align_face import FaceAligner
-from models import mobilenet_v2
 import settings
 import socket
 from _thread import *
 from modules.network import RetinaFaceModel
 from modules.utils import (set_memory_growth, load_yaml, draw_bbox_landm,
                            pad_input_image, recover_pad_output)
+from models import mobilenet_v2
 
 
 flags.DEFINE_string('cfg_path', './configs/retinaface_mbv2.yaml',
@@ -66,7 +66,7 @@ def main(_argv):
         print("[*] Cannot find ckpt from {}.".format(checkpoint_dir))
         exit()
     cam = cv2.VideoCapture(settings.RTSP_ADDR)
-    mbv2 = mobilenet_v2.create_mbv2_model(image_shape=(settings.IMAGE_SIZE, settings.IMAGE_SIZE, 3))
+    mbv2 = mobilenet_v2.create_mbv2_model(settings.CHECKPOINT_PATH)
     anchor_dataset = np.load(settings.ANCHOR_PATH)['arr_0']
     label_dataset = np.load(settings.LABEL_PATH)['arr_0']
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

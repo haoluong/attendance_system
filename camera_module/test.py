@@ -63,6 +63,9 @@ def main(_argv):
             processed_image = 0
             images = []
             labels = []
+            ######################################
+            # Need modified for using
+            ######################################
             items = os.listdir(FLAGS.folder_path+f)
             for path in items:
                 frame = cv2.imread(FLAGS.folder_path + f +'/'+ path)
