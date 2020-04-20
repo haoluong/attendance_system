@@ -1,76 +1,19 @@
-from absl import app, flags, logging
-from absl.flags import FLAGS
 import cv2
 import os
 import numpy as np
-import tensorflow as tf
 import time
-from utils.align_face import FaceAligner
 import settings
-import socket
-from _thread import *
-from modules.network import RetinaFaceModel
-from modules.utils import (set_memory_growth, load_yaml, draw_bbox_landm,
-                           pad_input_image, recover_pad_output)
-from models import mobilenet_v2
-
-
-flags.DEFINE_string('cfg_path', './configs/retinaface_mbv2.yaml',
-                    'config file path')
-flags.DEFINE_string('gpu', '0', 'which gpu to use')
-flags.DEFINE_string('img_path', '', 'path to input image')
-flags.DEFINE_boolean('webcam', True, 'get image source from webcam or not')
-flags.DEFINE_float('iou_th', 0.4, 'iou threshold for nms')
-flags.DEFINE_float('score_th', 0.5, 'score threshold for nms')
-flags.DEFINE_float('down_scale_factor', 1.0, 'down-scale factor for inputs')
-
-def classify(embed, anchors, labels):
-    dis_ = np.sqrt(np.sum(np.square(anchors - embed),axis=1))
-    min_dis_idx = np.argmin(dis_)
-    predict_label = labels[min_dis_idx]
-    same_label_idx = np.where(labels == predict_label)[0]
-    same_label_idx = np.delete(same_label_idx, np.where(same_label_idx == min_dis_idx)[0])
-    filter_dis = np.delete(dis_,same_label_idx)
-    func = np.vectorize(lambda x: np.exp(-x))
-    prob = np.exp(-dis_[min_dis_idx])/np.sum(func(filter_dis))
-    # return labels[np.argmin(dis_)], np.amin(dis_)
-    return predict_label, prob
-
-def send_msg(s, student_id):
-    s.send('<MSG>student_id:{student_id},inKTX:True,detected_at:{detected_at}<MSG>'.format(student_id=student_id,detected_at= time.strftime('%Y-%m-%d %H:%M:%S')).encode('ascii'))
+from modules.retinaface import RetinaFace
+from modules.mobilenetv2 import MobileNetV2
 
 def main(_argv):
     # init
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-    os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
-
-    logger = tf.get_logger()
-    logger.disabled = True
-    logger.setLevel(logging.FATAL)
-    set_memory_growth()
-
-    cfg = load_yaml(FLAGS.cfg_path)
-    aligner = FaceAligner()
-    # define network
-    model = RetinaFaceModel(cfg, training=False, iou_th=FLAGS.iou_th,
-                            score_th=FLAGS.score_th)
-
-    # load checkpoint
-    checkpoint_dir = './checkpoints/' + cfg['sub_name']
-    checkpoint = tf.train.Checkpoint(model=model)
-    if tf.train.latest_checkpoint(checkpoint_dir):
-        checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
-        print("[*] load ckpt from {}.".format(
-            tf.train.latest_checkpoint(checkpoint_dir)))
-    else:
-        print("[*] Cannot find ckpt from {}.".format(checkpoint_dir))
-        exit()
+    detect_model = RetinaFace(settings.CFG_RETINA)
+	recog_model = MobileNetV2(settings.CHECKPOINT_PATH, settings.ANCHOR_PATH, settings.LABEL_PATH)
+	print("*All model loaded")
+	db_storage = DBStorage()
+	print("*Database connected")
     cam = cv2.VideoCapture(settings.RTSP_ADDR)
-    mbv2 = mobilenet_v2.create_mbv2_model(settings.CHECKPOINT_PATH)
-    anchor_dataset = np.load(settings.ANCHOR_PATH)['arr_0']
-    label_dataset = np.load(settings.LABEL_PATH)['arr_0']
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(("127.0.0.1", 45678))
     start_time = time.time()
     while cam.isOpened():
         _, frame = cam.read()

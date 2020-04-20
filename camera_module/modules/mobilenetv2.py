@@ -38,4 +38,16 @@ class MobileNetV2():
         dis_ = embeds@self.anchors.T
         closest_idx = np.argsort(dis_)[:,-1]
         return [(self.labels[idx],0) for idx in closest_idx]
+
+    def inference(self, batch):
+        return self.model(batch).numpy()
+
+    def get_sequence_label(self, seq):
+        predicts = [self.__classify(e) for e in seq]#self.__cosine_classify(embeds)
+        label_groups = sorted(set(map(lambda x:x[0], predicts)))
+        total_probs = [sum([y[1] for y in predicts if y[0]==x]) for x in label_groups]
+        max_prob = max(total_probs)
+        max_label = label_groups[total_probs.index(max_prob)]
+        average_prob = list(filter(lambda x:x[0] == max_label,predicts))
+        return max_label, (sum(x[1] for x in average_prob)/len(average_prob)) * (max_prob/sum(total_probs))
         
