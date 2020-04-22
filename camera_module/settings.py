@@ -25,3 +25,11 @@ CLIENT_SLEEP = 0.25
 
 #initialize ultilities
 #CHECKPOINT_PATH = "/home/hao/DCLV-HK191/experiment_on_ktx/ktx-checkpoint/cp.ckpt"
+
+#unknown people storage
+UNKNOWN_FOLDER = "UNKNOWN/"
+
+#Email service
+SENDER = "plhao2904@gmail.com"
+PASSWORD = "konoh@83"
+RECEIVER = "1610885@hcmut.edu.vn"

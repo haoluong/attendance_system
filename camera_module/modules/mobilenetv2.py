@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import time
+from modules.utils import preprocess_input
 print(tf.__version__)
 class MobileNetV2():
     def __init__(self, checkpoint_path, anchor_path, label_path):
@@ -16,6 +17,7 @@ class MobileNetV2():
         return tf.keras.Sequential(model.layers[:2])
     
     def predict(self, batch):
+        batch = preprocess_input(batch)
         embeds = self.model(batch)
         res = [self.__classify(e) for e in embeds]#self.__cosine_classify(embeds)
         return res
@@ -40,6 +42,7 @@ class MobileNetV2():
         return [(self.labels[idx],0) for idx in closest_idx]
 
     def inference(self, batch):
+        batch = preprocess_input(batch)
         return self.model(batch).numpy()
 
     def get_sequence_label(self, seq):

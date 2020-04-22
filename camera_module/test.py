@@ -39,7 +39,7 @@ def main(_argv):
     set_memory_growth()
 
     cfg = load_yaml(FLAGS.cfg_path)
-    aligner = FaceAligner()
+    aligner = FaceAligner(desiredFaceSize=112)
     # define network
     model = RetinaFaceModel(cfg, training=False, iou_th=FLAGS.iou_th,
                             score_th=FLAGS.score_th)
@@ -59,24 +59,22 @@ def main(_argv):
         processed_total = 0
         CLASS_NAMES = np.array(os.listdir(FLAGS.folder_path))
         CLASS_NAMES.sort()
-        for f in CLASS_NAMES[1978:]:
+        for f in CLASS_NAMES:
             processed_image = 0
-            images = []
-            labels = []
             ######################################
             # Need modified for using
             ######################################
+            if os.path.isfile(FLAGS.folder_path+f):
+                continue
+            mkdir(FLAGS.destination_dir+f)
             items = os.listdir(FLAGS.folder_path+f)
+            
             for path in items:
                 frame = cv2.imread(FLAGS.folder_path + f +'/'+ path)
                 if frame is None:
                   continue
                 frame_height, frame_width, _ = frame.shape
                 img = np.float32(frame.copy())
-                if FLAGS.down_scale_factor < 1.0:
-                    img = cv2.resize(img, (0, 0), fx=FLAGS.down_scale_factor,
-                                        fy=FLAGS.down_scale_factor,
-                                        interpolation=cv2.INTER_LINEAR)
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
                 # pad input image to avoid unmatched shape problem
@@ -95,26 +93,22 @@ def main(_argv):
                 if (b_box[0]<0) or (b_box[1]<0) or (b_box[2]>=frame_width) or (b_box[3]>=frame_height):
                   continue
                 keypoints = {
-                    'left_eye': (int(ann[4] * frame_width),int(ann[5] * frame_height)),
-                    'right_eye': (int(ann[6] * frame_width),int(ann[7] * frame_height)),
+                    'left_eye': (ann[4] * frame_width,ann[5] * frame_height),
+                    'right_eye': (ann[6] * frame_width,ann[7] * frame_height),
+                    'nose': (ann[8], ann[9]),
+                    'left_mouth': (ann[10] * frame_width, ann[11] * frame_height),
+                    'right_mouth': (ann[12] * frame_width,ann[13] * frame_height),
                 }
-                # print(keypoints)
-                out_frame = aligner.align(frame, keypoints, b_box)
-                # cv2.imshow('original', frame)
-                # cv2.imshow('aligned', out_frame)
-                # if cv2.waitKey(0) & 0xFF == ord('q'):
-                #     continue
+                croped_image = frame[b_box[1]:b_box[3],b_box[0]:b_box[2], :]
+                out_frame = cv2.resize(croped_image, (112,112), interpolation=cv2.INTER_CUBIC)
+                # out_frame = aligner.align(frame, keypoints, b_box)
                 try:
-                    images.append(out_frame.reshape(1,112,112,3))
-                    labels.append((CLASS_NAMES == f).reshape(1,-1))
+                    cv2.imwrite(FLAGS.destination_dir + f +'/'+ path, out_frame)
                     log_txt.write(FLAGS.destination_dir + f +'/'+ path+"\n")
                     processed_image += 1
                 except FileExistsError as e:
                     pass
-            images_np = np.concatenate((tuple(images)), axis=0)
-            labels_np = np.concatenate((tuple(labels)), axis=0)
-            np.savez_compressed(FLAGS.destination_dir+"casia_image_{}.npz".format(f), images_np)
-            np.savez_compressed(FLAGS.destination_dir+"casia_label_{}.npz".format(f), labels_np)
+            
             print(f + " Done")
             log_txt.write(f + " Processed: " + str(processed_image) + ' / ' + str(len(items)) +"\n")
             total += len(items)
@@ -125,5 +119,4 @@ if __name__ == '__main__':
         app.run(main)
     except SystemExit:
         pass
-# align('/home/hao/DCLV-HK191/faces-gallery-ktx-500-nblur/','/home/hao/DCLV-HK191/processed_data/' )
 

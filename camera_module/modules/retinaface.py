@@ -1,15 +1,17 @@
 
 import os
+import cv2
 import numpy as np
 import tensorflow as tf 
 from modules.network import RetinaFaceModel
 from utils.align_face import FaceAligner
 from modules.utils import (set_memory_growth, load_yaml, draw_bbox_landm,
-                           pad_input_image, recover_pad_output, preprocess_input)
+                           pad_input_image, recover_pad_output)
 
 class RetinaFace():
     def __init__(self, cfg_path):
         self.model = self.__create_model(cfg_path)
+        self.aligner = FaceAligner()
 
     def __create_model(self, cfg_path):
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -36,6 +38,7 @@ class RetinaFace():
 
     def __detect_faces(self, frame):
         img = np.float32(frame.copy())
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # pad input image to avoid unmatched shape problem
         img, pad_params = pad_input_image(img, max_steps=32)
         
@@ -50,7 +53,7 @@ class RetinaFace():
     def extract_faces(self, frame):
         frame_height, frame_width,_ = frame.shape
         outputs = self.__detect_faces(frame)
-        aligner = FaceAligner()
+        b_boxes = []
         results = np.empty((0,160,160,3))
         for ann in outputs:
             b_box = int(ann[0] * frame_width), int(ann[1] * frame_height), \
@@ -61,8 +64,8 @@ class RetinaFace():
                 'left_eye': (int(ann[4] * frame_width),int(ann[5] * frame_height)),
                 'right_eye': (int(ann[6] * frame_width),int(ann[7] * frame_height)),
             }
-            out_frame = aligner.align(frame, keypoints, b_box)
-            out_frame = preprocess_input(out_frame)
+            out_frame = self.aligner.align(frame, keypoints, b_box)
+            b_boxes.append(ann[:4])
             results = np.vstack([results, out_frame[np.newaxis,...]])
-        return results
+        return b_boxes, results
         
