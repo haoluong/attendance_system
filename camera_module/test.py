@@ -66,6 +66,9 @@ def main(_argv):
             ######################################
             if os.path.isfile(FLAGS.folder_path+f):
                 continue
+            temp = os.listdir(FLAGS.destination_dir)
+            if f in temp and f != temp[-1]:
+              continue
             mkdir(FLAGS.destination_dir+f)
             items = os.listdir(FLAGS.folder_path+f)
             
@@ -119,4 +122,5 @@ if __name__ == '__main__':
         app.run(main)
     except SystemExit:
         pass
+
 

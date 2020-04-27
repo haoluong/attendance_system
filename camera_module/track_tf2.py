@@ -129,7 +129,8 @@ def main(_argv):
                     cv2.FONT_HERSHEY_DUPLEX, 0.75, (0, 255, 0), 2)
         i+=1
         # show frame
-        cv2.imwrite('UNKNOWN/2/'+str(i)+'.jpeg', frame)
+        cv2.imwrite('UNKNOWN/4/'+str(i)+'.jpeg', frame)
+        # cv2.imshow("frame", frame)
         if cv2.waitKey(1) == ord('q'):
             exit()
 

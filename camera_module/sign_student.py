@@ -1,34 +1,62 @@
 import cv2
 import numpy as np
 import settings
-from mtcnn import MTCNN
-from models import mobilenet_v2
 import os
-detector = MTCNN()
-anchor_dataset = np.load(settings.ANCHOR_PATH)['arr_0']
-label_dataset = np.load(settings.LABEL_PATH)['arr_0']
-mbv2 = mobilenet_v2.create_mbv2_model(image_shape=(settings.IMAGE_SIZE, settings.IMAGE_SIZE, 3))
-def add_anchor(folder_path, student_id):
-    flattens = []
+from modules.retinaface import RetinaFace
+from modules.mobilenetv2 import MobileNetV2
+from modules.db_redis import Rediser
+# connect to Redis server   
+db_redis = Rediser(settings)
+print("*Database connected")
+# load the pre-trained Keras model (here we are using a model
+# pre-trained on ImageNet and provided by Keras, but you can
+# substitute in your own networks just as easily)
+detect_model = RetinaFace(settings.CFG_RETINA)
+recog_model = MobileNetV2(settings.CHECKPOINT_PATH, db_redis)
+print("*All model loaded")
+def read_image(folder_path):
+    images = []
     for path in os.listdir(folder_path):
-        frame = cv2.imread(folder_path + path)
-        frame = cv2.flip(frame, 1)
-        ############
-        # Need modified for using
-        ############
-        result = detector.detect_faces(frame)
-        for person in result:
-            b_box = person['box']
-            cropped = frame[b_box[0]-settings.MARGIN:b_box[0]+b_box[2]+settings.MARGIN, 
-                            b_box[1]-settings.MARGIN:b_box[1]+b_box[3]+settings.MARGIN, :]
-            scaled = cv2.resize(frame, (settings.IMAGE_SIZE, settings.IMAGE_SIZE), interpolation=cv2.INTER_CUBIC)
-            scaled_reshape = scaled.reshape(-1, settings.IMAGE_SIZE, settings.IMAGE_SIZE, 3)
-            embed_vector = mbv2(scaled_reshape/255.0)
-            flattens.append(embed_vector.numpy())
-    new_data = np.concatenate(tuple(flattens), axis=0)
-    new_labels = np.array([student_id for _ in range(new_data.shape[0])])
-    new_anchor_dataset = np.concatenate((anchor_dataset, new_data), axis=0)
-    new_label_dataset = np.concatenate((label_dataset, new_labels), axis=0)
-    np.savez_compressed(settings.ANCHOR_PATH, new_anchor_dataset)
-    np.savez_compressed(settings.LABEL_PATH, new_label_dataset)
-add_anchor('/home/hao/DCLV-HK191/data/1512571/', '1512571')
+        frame = cv2.imread(folder_path+path)
+        if frame is not None:
+            # print("Read image from ", folder_path+path)
+            images.append(frame)
+    return images
+
+def add_embeds(images, student_id):
+    embeds = None
+    labels = []
+    for image in images:
+        # detect faces
+        b_boxes, faces = detect_model.extract_faces(image)
+        print("* Batch size: {}".format(faces.shape))
+        #get largest face
+        # largest_box = max(b_boxes, key=lambda x: (x[2]-x[0])*(x[3]-x[1]))
+        if len(b_boxes) > 0:
+            box_areas = list(map(lambda x: (x[2]-x[0])*(x[3]-x[1]), b_boxes))
+            largest_face = faces[box_areas.index(max(box_areas))]
+            # inference the batch
+            results = recog_model.inference(largest_face[np.newaxis,...])
+            if embeds is None:
+                embeds = results
+            else:
+                embeds = np.vstack((embeds, results))
+            labels.append(student_id)
+    # add to db
+    db_redis.add_embeds(embeds, labels)
+
+def main(folder_path, student_id):
+    images = read_image(folder_path)
+    add_embeds(images, student_id)
+    
+def remove_student(student_id):
+    db_redis = Rediser(settings)
+    print("*Database connected")
+    return db_redis.remove_student(student_id)
+path = "/home/hao/DCLV-HK191/faces-gallery-ktx-500-nblur/"
+list_folders = os.listdir(path)
+list_folders.sort()
+for folder in list_folders:
+    main(path + folder + "/", folder)
+    print(folder)
+# remove_student('1610885')

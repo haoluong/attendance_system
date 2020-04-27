@@ -1,6 +1,6 @@
 IMAGE_SIZE = 160
 MARGIN = 16
-CHECKPOINT_PATH = "weights/ktx_model.h5"
+CHECKPOINT_PATH = "weights/ktx_model.h5" #"weights/arc_mbv2.h5" 
 ANCHOR_PATH = "weights/anchor_1.npz"
 LABEL_PATH = "weights/label_anchor_1.npz"
 CFG_RETINA = "configs/retinaface_mbv2.yaml"

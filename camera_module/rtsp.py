@@ -1,18 +1,12 @@
 import numpy as np
 import settings
-from utils.helpers import base64_encode_image
-import redis
-import uuid
 import time
 import cv2
-import json
-
-# tf.enable_eager_execution()
-db = redis.StrictRedis(host=settings.REDIS_HOST,
-	port=settings.REDIS_PORT, db=settings.REDIS_DB)
+from modules.db_redis import Rediser
 
 def streaming():
-    cam = cv2.VideoCapture("/home/hao/Videos/Webcam/1.webm") #(settings.RTSP_ADDR)
+    db_redis = Rediser(settings)
+    cam = cv2.VideoCapture(0)
     start = time.time()
     while cam.isOpened():
         _, image = cam.read()
@@ -23,16 +17,13 @@ def streaming():
         cv2.imshow('{}-{}'.format(image.shape[0], image.shape[1]), np.uint8(image))
         if cv2.waitKey(1) == ord('q'):
             exit()
-        # if time.time() - start < 1:
-        #     continue
-        # else:
-        #     start = time.time()
+        if time.time() - start < 1:
+            continue
+        else:
+            start = time.time()
         # generate an ID for the classification then add the
         # classification ID + image to the queue
         k = time.strftime('%Y-%m-%d %H:%M:%S')#str(uuid.uuid4())
-        image = base64_encode_image(image)
-        d = {"id": k, "image": image}
-        db.rpush(settings.IMAGE_QUEUE, json.dumps(d))
+        print(db_redis.push_image(k, image))
         print(time.time()-start)
-        time.sleep(1)
 streaming()

@@ -1,5 +1,5 @@
 import numpy as np 
-THRESHOLD = 20.0
+THRESHOLD = 30
 
 class Tracker():
     def __init__(self):

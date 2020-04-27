@@ -18,14 +18,14 @@ class Pikachu():
 
     def save(self, image_sequence, _time, status):
         unknown_id = str(uuid.uuid4())
-        # mkdir(self.path+unknown_id)
-        # for (i,image) in enumerate(image_sequence):
-        #     cv2.imwrite(self.path + unknown_id + '/' + str(i)+'.jpeg', image*255)
+        mkdir(self.path+unknown_id)
+        for (i,image) in enumerate(image_sequence):
+            cv2.imwrite(self.path + unknown_id + '/' + str(i)+'.jpeg', image*255)
 
-        send_mail("{unknown_id} {action} at {_time}\n".format(
-                unknown_id=unknown_id,
-                action="IN KTX" if status else "OUT KTX",
-                _time=_time), image_sequence)
+        # send_mail("{unknown_id} {action} at {_time}\n".format(
+        #         unknown_id=unknown_id,
+        #         action="IN KTX" if status else "OUT KTX",
+        #         _time=_time), image_sequence)
         self.__write_logs(unknown_id, "IN KTX" if status else "OUT KTX", _time)
 
     @staticmethod

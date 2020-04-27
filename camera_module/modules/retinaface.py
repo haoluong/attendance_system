@@ -39,6 +39,9 @@ class RetinaFace():
     def __detect_faces(self, frame):
         img = np.float32(frame.copy())
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img_height, img_width,_ = img.shape
+        if img.shape[1] != 640:
+            img = cv2.resize(img, (int(img_height*640/img_width),640), interpolation=cv2.INTER_CUBIC)
         # pad input image to avoid unmatched shape problem
         img, pad_params = pad_input_image(img, max_steps=32)
         
@@ -56,13 +59,16 @@ class RetinaFace():
         b_boxes = []
         results = np.empty((0,160,160,3))
         for ann in outputs:
-            b_box = int(ann[0] * frame_width), int(ann[1] * frame_height), \
-                    int(ann[2] * frame_width), int(ann[3] * frame_height)
-            if (b_box[0]<0) or (b_box[1]<0) or (b_box[2]>=frame_width) or (b_box[3]>=frame_height):
-                continue
+            b_box = max(int(ann[0] * frame_width),0), max(int(ann[1] * frame_height),0), \
+                    min(int(ann[2] * frame_width), frame_width), min(int(ann[3] * frame_height), frame_height)
+            # if (b_box[0]<0) or (b_box[1]<0) or (b_box[2]>=frame_width) or (b_box[3]>=frame_height):
+            #     continue
             keypoints = {
-                'left_eye': (int(ann[4] * frame_width),int(ann[5] * frame_height)),
-                'right_eye': (int(ann[6] * frame_width),int(ann[7] * frame_height)),
+                'left_eye': (ann[4] * frame_width,ann[5] * frame_height),
+                'right_eye': (ann[6] * frame_width,ann[7] * frame_height),
+                'nose': (ann[8], ann[9]),
+                'left_mouth': (ann[10] * frame_width, ann[11] * frame_height),
+                'right_mouth': (ann[12] * frame_width,ann[13] * frame_height),
             }
             out_frame = self.aligner.align(frame, keypoints, b_box)
             b_boxes.append(ann[:4])
