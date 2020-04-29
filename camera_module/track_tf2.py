@@ -65,7 +65,7 @@ def main(_argv):
     else:
         print("[*] Cannot find ckpt from {}.".format(checkpoint_dir))
         exit()
-    cam = cv2.VideoCapture("/home/hao/Videos/Webcam/3.webm")
+    cam = cv2.VideoCapture(0)#("/home/hao/Videos/Webcam/3.webm")
     mbv2 = mobilenet_v2.create_mbv2_model(settings.CHECKPOINT_PATH)
     anchor_dataset = np.load(settings.ANCHOR_PATH)['arr_0']
     label_dataset = np.load(settings.LABEL_PATH)['arr_0']
@@ -129,8 +129,8 @@ def main(_argv):
                     cv2.FONT_HERSHEY_DUPLEX, 0.75, (0, 255, 0), 2)
         i+=1
         # show frame
-        cv2.imwrite('UNKNOWN/4/'+str(i)+'.jpeg', frame)
-        # cv2.imshow("frame", frame)
+        # cv2.imwrite('UNKNOWN/4/'+str(i)+'.jpeg', frame)
+        cv2.imshow("frame", frame)
         if cv2.waitKey(1) == ord('q'):
             exit()
 

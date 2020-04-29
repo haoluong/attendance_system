@@ -71,7 +71,8 @@ def main(_argv):
               continue
             mkdir(FLAGS.destination_dir+f)
             items = os.listdir(FLAGS.folder_path+f)
-            
+            if len(items) < 10:
+                continue
             for path in items:
                 frame = cv2.imread(FLAGS.folder_path + f +'/'+ path)
                 if frame is None:
@@ -102,9 +103,9 @@ def main(_argv):
                     'left_mouth': (ann[10] * frame_width, ann[11] * frame_height),
                     'right_mouth': (ann[12] * frame_width,ann[13] * frame_height),
                 }
-                croped_image = frame[b_box[1]:b_box[3],b_box[0]:b_box[2], :]
-                out_frame = cv2.resize(croped_image, (112,112), interpolation=cv2.INTER_CUBIC)
-                # out_frame = aligner.align(frame, keypoints, b_box)
+                # croped_image = frame[b_box[1]:b_box[3],b_box[0]:b_box[2], :]
+                # out_frame = cv2.resize(croped_image, (112,112), interpolation=cv2.INTER_CUBIC)
+                out_frame = aligner.align(frame, keypoints, b_box)
                 try:
                     cv2.imwrite(FLAGS.destination_dir + f +'/'+ path, out_frame)
                     log_txt.write(FLAGS.destination_dir + f +'/'+ path+"\n")

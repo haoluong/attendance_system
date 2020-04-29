@@ -47,7 +47,7 @@ class FaceAligner():
         eye_dist = np.sqrt((right_eye[0]-left_eye[0])**2+(right_eye[1]-left_eye[1])**2)
         # desiredDist = self.desiredDist #(desiredRightEyeX - self.desiredLeftEye[0])
         # desiredDist *= self.desiredFaceSize
-        scale = np.sqrt(0.4*(b_box[3]-b_box[1]) / dist - 1.2*(eye_dist/(b_box[2]-b_box[0])) + 0.5)
+        scale = 1 #np.sqrt(0.4*(b_box[3]-b_box[1]) / dist - 1.2*(eye_dist/(b_box[2]-b_box[0])) + 0.5)
         # compute center (x, y)-coordinates (i.e., the median point)
         # between the two eyes in the input image
         # eyesCenter = ((left_eye[0] + right_eye[0]) // 2,
