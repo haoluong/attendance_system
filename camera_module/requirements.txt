@@ -19,7 +19,7 @@ numpy==1.18.3
 oauthlib==3.1.0
 opencv-python==4.2.0.34
 opt-einsum==3.2.1
-Pillow==6.2.0
+Pillow==6.2.2
 pkg-resources==0.0.0
 protobuf==3.11.3
 pyasn1==0.4.8
@@ -33,7 +33,7 @@ rsa==4.0
 scipy==1.4.1
 six==1.14.0
 tensorboard==2.1.1
-tensorflow==2.0.0
+tensorflow==2.0.1
 tensorflow-estimator==2.1.0
 tensorflow-gpu==2.1.0
 tensorflow-metadata==0.21.1
