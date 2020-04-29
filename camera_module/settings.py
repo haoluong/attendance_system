@@ -5,6 +5,7 @@ ANCHOR_PATH = "weights/anchor_1.npz"
 LABEL_PATH = "weights/label_anchor_1.npz"
 CFG_RETINA = "configs/retinaface_mbv2.yaml"
 RTSP_ADDR = "rtsp://192.168.1.183:554"
+EMBED_SIZE = 1280
 # initialize Redis connection settings
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
@@ -31,5 +32,4 @@ UNKNOWN_FOLDER = "UNKNOWN/"
 
 #Email service
 SENDER = "plhao2904@gmail.com"
-PASSWORD = "konoh@83"
 RECEIVER = "1610885@hcmut.edu.vn"

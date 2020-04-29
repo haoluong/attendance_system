@@ -18,7 +18,7 @@ class MobileNetV2():
     def __load_model(self, checkpoint_path):
         model = tf.keras.models.load_model(checkpoint_path)
         print("MobileNetV2 loaded at {}".format(checkpoint_path))
-        return tf.keras.Sequential(model.layers[:2])
+        return model
     
     def __check_update_embeds(self):
         return self.storage.check_reload_status()

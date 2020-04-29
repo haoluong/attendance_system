@@ -35,7 +35,7 @@ class Rediser():
 
     def get_embeds(self):
         embeds = self.db.lrange(EMBED_QUEUE,0,-1)
-        embeds = [base64_decode_image(e, self.settings.IMAGE_DTYPE, (1, 1280), byte_convert=False) for e in embeds]
+        embeds = [base64_decode_image(e, self.settings.IMAGE_DTYPE, (1, self.settings.EMBED_SIZE), byte_convert=False) for e in embeds]
         return np.vstack(tuple(embeds)) if len(embeds) > 0 else []
 
     def get_labels(self):
