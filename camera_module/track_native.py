@@ -64,7 +64,7 @@ def main(_argv):
     else:
         print("[*] Cannot find ckpt from {}.".format(checkpoint_dir))
         exit()
-    if FLAGS.input_stream == 'None':
+    if FLAGS.input_stream == '0':
         input_stream = 0
     elif FLAGS.input_stream == 'rtsp':
         input_stream = settings.RTSP_ADDR
