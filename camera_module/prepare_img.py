@@ -39,7 +39,7 @@ def main(_argv):
     set_memory_growth()
 
     cfg = load_yaml(FLAGS.cfg_path)
-    aligner = FaceAligner(desiredFaceSize=112)
+    aligner = FaceAligner(desiredFaceSize=128)
     # define network
     model = RetinaFaceModel(cfg, training=False, iou_th=FLAGS.iou_th,
                             score_th=FLAGS.score_th)
@@ -78,6 +78,8 @@ def main(_argv):
                 if frame is None:
                   continue
                 frame_height, frame_width, _ = frame.shape
+                if frame_height != frame_width:
+                    print(frame_height, frame_width)
                 img = np.float32(frame.copy())
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 

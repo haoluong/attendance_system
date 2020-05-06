@@ -32,7 +32,7 @@ class FaceAligner():
         dY = eyeCenter[1] - mouthCenter[1]
         dX = eyeCenter[0] - mouthCenter[0]
         angle = np.degrees(np.arctan2(dY, dX))+90
-        if abs(angle) < 20:
+        if abs(angle) < 5:
             croped_image = image[b_box[1]:b_box[3],b_box[0]:b_box[2], :]
             return cv2.resize(croped_image, (self.desiredFaceSize,self.desiredFaceSize), interpolation=cv2.INTER_CUBIC)
         # compute the desired right eye x-coordinate based on the
