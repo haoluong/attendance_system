@@ -10,7 +10,7 @@ import settings
 from modules.network import RetinaFaceModel
 from modules.utils import (set_memory_growth, load_yaml, draw_bbox_landm,
                            pad_input_image, recover_pad_output)
-
+from utils.retina_align import norm_crop
 
 flags.DEFINE_string('cfg_path', './configs/retinaface_mbv2.yaml',
                     'config file path')
@@ -69,17 +69,13 @@ def main(_argv):
             temp = os.listdir(FLAGS.destination_dir)
             if f in temp and f != temp[-1]:
               continue
-            mkdir(FLAGS.destination_dir+f)
             items = os.listdir(FLAGS.folder_path+f)
-            if len(items) < 10:
-                continue
+            mkdir(FLAGS.destination_dir+f)
             for path in items:
                 frame = cv2.imread(FLAGS.folder_path + f +'/'+ path)
                 if frame is None:
                   continue
                 frame_height, frame_width, _ = frame.shape
-                if frame_height != frame_width:
-                    print(frame_height, frame_width)
                 img = np.float32(frame.copy())
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
@@ -108,6 +104,12 @@ def main(_argv):
                 # croped_image = frame[b_box[1]:b_box[3],b_box[0]:b_box[2], :]
                 # out_frame = cv2.resize(croped_image, (112,112), interpolation=cv2.INTER_CUBIC)
                 out_frame = aligner.align(frame, keypoints, b_box)
+                # for i in range(4,14):
+                #     if i%2 == 0:
+                #         ann[i] = int(ann[i]*frame_width)
+                #     else:
+                #         ann[i] = int(ann[i]*frame_height)
+                # out_frame = norm_crop(frame, np.array([ann[4:6],ann[6:8],ann[8:10],ann[10:12],ann[12:14]]))
                 try:
                     cv2.imwrite(FLAGS.destination_dir + f +'/'+ path, out_frame)
                     log_txt.write(FLAGS.destination_dir + f +'/'+ path+"\n")
