@@ -10,7 +10,6 @@ import settings
 from modules.network import RetinaFaceModel
 from modules.utils import (set_memory_growth, load_yaml, draw_bbox_landm,
                            pad_input_image, recover_pad_output)
-from utils.retina_align import norm_crop
 
 flags.DEFINE_string('cfg_path', './configs/retinaface_mbv2.yaml',
                     'config file path')
