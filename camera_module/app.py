@@ -6,6 +6,8 @@ import requests
 import os
 from PIL import Image
 import io
+from _thread import start_new_thread
+from sign_student import sign_student_web
 # from helpers import decode_image
 app = flask.Flask(__name__)
 cors = CORS(app)
@@ -20,16 +22,16 @@ history = client.history
 @app.route("/login", methods=["POST"])
 @cross_origin()
 def login():
-    username = request.get_json()['username'] 
-    password = request.get_json()['password']
-    login_query = {'username': username}
-    login_results = user.find_one(login_query) 
-    data = {"success": False}
-    if login_results:
-        if login_results['password'] == password:
-            data["success"] = True
-            return jsonify(data)
-    return jsonify(data)
+   username = request.get_json()['username'] 
+   password = request.get_json()['password']
+   login_query = {'username': username}
+   login_results = user.find_one(login_query) 
+   data = {"success": False}
+   if login_results:
+      if login_results['password'] == password:
+         data["success"] = True
+         return jsonify(data)
+   return jsonify(data)
 
 @app.route("/studentlist", methods=["GET"])
 @cross_origin()
@@ -88,24 +90,24 @@ def get_studentList():
       data = data[number_of_rows*(page-1):end]
    return jsonify({"data": data, "total": total})
 
+def read_img_buffer(buffer):
+   return Image.open(io.BytesIO(buffer))
+
 @app.route("/newstudent", methods=["POST"])
 @cross_origin()
 def add_stdinfo():
-   # print(request.files)
-   
    std_id = request.form['std_id']
    std_name = request.form['std_name']
    std_room = request.form['std_room']
-   image = request.files["image"].read()
+   avatar = request.files["avatar"].read()
+   num_image = int(request.form['num_image'])
+   images = [read_img_buffer(request.files["image"+str(i)].read()) for i in range(num_image)]
    new_student = {}
    new_student["std_id"] = std_id
    new_student["std_name"] = std_name
    new_student["std_room"] = std_room
-   new_student["avatar"] = image
-   # decoded_image = Image.open(io.BytesIO(image))
-   # decoded_image.save("b.jpg")
-   # decoded_image = decode_image(image, "float32", [160,160])
-   # import pdb; pdb.set_trace()
+   new_student["avatar"] = avatar
+   start_new_thread(sign_student_web, (images, std_id))
    new_stdList = student_info.insert_one(new_student)
    return jsonify({"status": True})
 

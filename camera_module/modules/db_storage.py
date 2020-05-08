@@ -14,6 +14,7 @@ class DBStorage():
     def __init__(self):
         self.client = MongoClient("mongodb+srv://thesis:thesis123@cluster0-849yn.mongodb.net/test?retryWrites=true&w=majority")
         self.db = self.client.attendance_system #lay database
+        self.history = self.client.history
     
     def save(self, student_stt):
         status_collection = self.db.student_status  #lay bang users
@@ -24,7 +25,12 @@ class DBStorage():
                 {'std_id': student_stt.student_id, 'inKTX': student_stt.inKTX, 'detected_at': student_stt.detected_at}
             }
         results = status_collection.update_one(query, new_status, upsert=True)
-        self.__write_logs("INSERT OR UPDATE", str(student_stt))
+        self.__write_logs("INSERT OR UPDATE STATUS", str(student_stt))
+        
+        std_history = self.history[student_stt.student_id] #lay bang history cua student
+        new_history = {'inKTX': student_stt.inKTX, 'detected_at': student_stt.detected_at}
+        his = std_history.insert_one(new_history)
+        self.__write_logs("INSERT HISTORY", str(student_stt))
     
     @staticmethod
     def __write_logs(action,msg):

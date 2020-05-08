@@ -21,7 +21,7 @@ class Pikachu():
         unknown_id = str(uuid.uuid4())
         mkdir(self.path+unknown_id)
         for (i,image) in enumerate(image_sequence):
-            cv2.imwrite(self.path + unknown_id + '/' + str(i)+'.jpeg', image*255)
+            cv2.imwrite(self.path + unknown_id + '/' + str(i)+'.jpeg', image)
 
         self.email_service.send_mail("{unknown_id} {action} at {_time}\n".format(
                 unknown_id=unknown_id,

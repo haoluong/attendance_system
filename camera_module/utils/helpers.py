@@ -2,7 +2,6 @@
 import numpy as np
 import base64
 import sys
-
 def base64_encode_image(a):
 	# base64 encode the input NumPy array
 	return base64.b64encode(a).decode("utf-8")

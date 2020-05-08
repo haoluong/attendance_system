@@ -29,7 +29,7 @@ class Header extends Component {
                     <Dropdown item text="Danh mục" >
                         <Dropdown.Menu>
                             <Dropdown.Item><Link to="/studentlist"><img src="" alt="" />Danh sách sinh viên</Link></Dropdown.Item>
-                            <Dropdown.Item><Link to="/newstudent"><img src="" alt="" />Thông tin sinh viên</Link></Dropdown.Item>
+                            <Dropdown.Item><Link to="/newstudent"><img src="" alt="" />Thêm sinh viên</Link></Dropdown.Item>
                             <Dropdown.Item><Link to="/studentlist"><img src="" alt="" />Camera</Link></Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>

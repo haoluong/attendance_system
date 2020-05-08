@@ -21,22 +21,25 @@ class NewStudent extends Component {
             std_id: '',
             std_name: '',
             std_room: '',
-            image: null
+            avatar: null,
+            images: null
         }
         this.onChange = this.onChange.bind(this);
+        this.onMultipleChange = this.onMultipleChange.bind(this);
     }
+
     handleSubmit = event => {
         event.preventDefault();
         const formData = new FormData();
-        formData.append('image', this.state.image)
+        for (var x = 0; x < this.state.images.length; x++) {
+            formData.append("image" + x, this.state.images[x]);
+        }
+        formData.append('avatar', this.state.avatar)
+        formData.append('num_image', this.state.images.length)
         formData.append('std_id', this.state.std_id)
         formData.append('std_name', this.state.std_name)
         formData.append('std_room', this.state.std_room)
-        const student = {
-            std_id: this.state.std_id,
-            std_name: this.state.std_name,
-            std_room: this.state.std_room
-        };
+        console.log(formData)
         Axios.post('http://127.0.0.1:9999/newstudent', formData,{ headers: { 'content-type': 'multipart/form-data' } })
             .then((res) => {
                 if (res.data.status === true) {
@@ -53,29 +56,15 @@ class NewStudent extends Component {
     onChange(e) {
         let link_created = e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : ''
         this.setState({
-          image:e.target.files[0],
+          avatar:e.target.files[0],
         });
     }
-    uploadFile = event => {
-        event.preventDefault();
-        const formData = new FormData();
-        formData.append('image', event.target.files[0])
-        Axios.post(
-            'http://127.0.0.1:9999/newstudent',
-            formData,
-            { headers: { 'content-type': 'multipart/form-data' } }
-        ).then((res) => {
-        }).catch((error) => {
-            console.log(error)
-        });
 
-        // in express , node, backend code would be
-        //import formidable from 'formidable'
-        //(req, res) => {
-        //  let form = new formidable.IncomingForm();
-        //  form.parse(req, (err, fields, files) => {
-        // you can get the file from files.file.path
-        //  })
+    onMultipleChange(e) {
+        let link_created = e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : ''
+        this.setState({
+          images:e.target.files,
+        });
     }
 
     render() {
@@ -102,12 +91,19 @@ class NewStudent extends Component {
                     />
                     <Form.Input
                         fluid
-                        label='Hình ảnh'
+                        label='Avatar'
                         type="file"
-                        id="file"
-                        name="filename"
-                        multiple="multiple"
+                        id="avatar"
+                        name="avatar"
                         onChange= {this.onChange}/>
+                    <Form.Input
+                        fluid
+                        label='Danh sách ảnh định danh'
+                        type="file"
+                        id="images"
+                        name="images"
+                        multiple="multiple"
+                        onChange= {this.onMultipleChange}/>
                     {/* <Form.Checkbox
                     label='I agree to the Terms and Conditions'
                     error={{

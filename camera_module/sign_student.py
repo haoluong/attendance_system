@@ -49,14 +49,12 @@ def main(folder_path, student_id):
     images = read_image(folder_path)
     add_embeds(images, student_id)
     
+def sign_student_web(pil_images, student_id):
+    images = [np.array(img) for img in pil_images]
+    add_embeds(images, student_id)
+
 def remove_student(student_id):
     db_redis = Rediser(settings)
     print("*Database connected")
     return db_redis.remove_student(student_id)
-path = "/home/hao/DCLV-HK191/faces-gallery-ktx-500-nblur/"
-list_folders = os.listdir(path)
-list_folders.sort()
-for folder in list_folders:
-    main(path + folder + "/", folder)
-    print(folder)
-# remove_student('1610885')
+remove_student('123123123')
