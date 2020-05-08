@@ -112,11 +112,12 @@ def add_stdinfo():
 @app.route("/avatar", methods=["GET"])
 @cross_origin()
 def get_avatar():
-   print("Asfasdfasdfasfd")
    std_id = request.args.get('std_id')
    ##get avatar
    std_info = student_info.find_one({"std_id": std_id})
    avatar = std_info.get("avatar", "")
+   if avatar == "":
+      return jsonify({})
    return send_file(io.BytesIO(avatar),
                      attachment_filename='avatar.jpeg',
                      mimetype='image/jpeg')

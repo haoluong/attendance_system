@@ -134,19 +134,22 @@ class StudentList extends Component {
         this.query_history(modal)
     }
 
-    clickRow = async (student) => {
+    clickRow = (student) => {
         let url = "http://127.0.0.1:9999/avatar?std_id=" + student.std_id
-        await Axios.get(url, { responseType: 'arraybuffer' })
+        Axios.get(url, { responseType: 'arraybuffer' })
             .then((res) => {
                 let base64Flag = 'data:image/jpeg;base64,';
                 let student_clone = student
-                student_clone.avatar = base64Flag + this.arrayBufferToBase64(res.data)
+                if (res.data.byteLength > 100 ){
+                    student_clone.avatar = base64Flag + this.arrayBufferToBase64(res.data)
+                }else{
+                    student_clone.avatar = 'https://react.semantic-ui.com/images/avatar/large/rachel.png'
+                }
                 // console.log(student_clone.avatar)
                 this.setState({
                     openModal: true,
                     selectedStudent: student_clone
                 })
-                console.log(this.state.selectedStudent)
             }).catch((error) => {
                 console.log("get avatar fail " + error)
             });
@@ -236,8 +239,6 @@ class StudentList extends Component {
                             <h4>Họ và tên: {this.state.selectedStudent.std_name}</h4>
                             <h4>MSSV: {this.state.selectedStudent.std_id}</h4>
                             <h4>Phòng: {this.state.selectedStudent.std_room}</h4>
-
-
                         </Modal.Description>
                     </Modal.Content>
                     <Table celled>
