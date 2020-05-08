@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Header from "../../components/Header/header";
-import { Table, Form, Button, Label, Menu, Icon, Segment } from 'semantic-ui-react';
-import History from '../../components/History/history';
+import { Form, Button, Segment, Modal } from 'semantic-ui-react';
 import Axios from 'axios';
 
 
@@ -21,7 +20,9 @@ class NewStudent extends Component {
             std_id: '',
             std_name: '',
             std_room: '',
-            image: null
+            image: null,
+            openModalSuccess: false,
+            openModalError: false
         }
         this.onChange = this.onChange.bind(this);
     }
@@ -37,17 +38,22 @@ class NewStudent extends Component {
             std_name: this.state.std_name,
             std_room: this.state.std_room
         };
-        Axios.post('http://127.0.0.1:9999/newstudent', formData,{ headers: { 'content-type': 'multipart/form-data' } })
+        Axios.post('http://127.0.0.1:9999/newstudent', formData, { headers: { 'content-type': 'multipart/form-data' } })
             .then((res) => {
                 if (res.data.status === true) {
-                    History.push('/message')
+                    this.setState({ openModalSuccess: true})
                 }
                 else {
-                    console.log(false)
+                    this.setState({openModalError: true})
                 }
             }).catch((error) => {
                 console.log(error)
             });
+    }
+
+    closeModal = () => {
+        this.setState({ openModalSuccess: false, openModalError: false })
+        window.location.reload();
     }
 
     onChange(e) {
@@ -68,14 +74,6 @@ class NewStudent extends Component {
         }).catch((error) => {
             console.log(error)
         });
-
-        // in express , node, backend code would be
-        //import formidable from 'formidable'
-        //(req, res) => {
-        //  let form = new formidable.IncomingForm();
-        //  form.parse(req, (err, fields, files) => {
-        // you can get the file from files.file.path
-        //  })
     }
 
     render() {
@@ -119,6 +117,24 @@ class NewStudent extends Component {
                         <Button style={{ textAlign: "center" }} color='blue' onClick={this.handleSubmit}>Xác nhận</Button>
                     </Segment>
                 </Segment>
+                <Modal open={this.state.openModalSuccess} onClose={this.closeModal} basic size='small'>
+                    {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
+                    <Modal.Content>
+                        <p>Đăng ký thông tin sinh viên thành công!</p>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button color='blue' inverted onClick={this.closeModal}>OK</Button>
+                    </Modal.Actions>
+                </Modal>
+                <Modal open={this.state.openModalError} onClose={this.closeModal} basic size='small'>
+                    {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
+                    <Modal.Content>
+                        <p>Mã số sinh viên đã tồn tại. Vui lòng đăng ký thông tin khác!</p>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button color='blue' inverted onClick={this.closeModal}>OK</Button>
+                    </Modal.Actions>
+                </Modal>
             </Form>
         )
     };

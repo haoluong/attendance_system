@@ -97,6 +97,8 @@ def add_stdinfo():
    std_name = request.form['std_name']
    std_room = request.form['std_room']
    image = request.files["image"].read()
+   id_query = {'std_id': std_id}
+   id_results = student_info.find_one(id_query) 
    new_student = {}
    new_student["std_id"] = std_id
    new_student["std_name"] = std_name
@@ -106,8 +108,11 @@ def add_stdinfo():
    # decoded_image.save("b.jpg")
    # decoded_image = decode_image(image, "float32", [160,160])
    # import pdb; pdb.set_trace()
-   new_stdList = student_info.insert_one(new_student)
-   return jsonify({"status": True})
+   if id_results is not None:
+      return jsonify({"status": False})
+   else:
+      new_stdList = student_info.insert_one(new_student)
+      return jsonify({"status": True})
 
 @app.route("/avatar", methods=["GET"])
 @cross_origin()

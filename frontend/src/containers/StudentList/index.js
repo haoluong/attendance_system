@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Header from "../../components/Header/header";
-import { Table, Form, Pagination, Search, Grid, Menu, Icon, Modal, Image, Dropdown, Label } from 'semantic-ui-react';
+import { Table, Form, Pagination, Search, Grid, Menu, Modal, Image, Dropdown, Icon, Input, Button } from 'semantic-ui-react';
 import Axios from 'axios';
 import _ from 'lodash'
 import faker from 'faker'
@@ -11,12 +11,12 @@ const source = _.times(5, () => ({
 }))
 
 const numofRow = [
-    {key:1, value:1, text:'1'},
-    {key:2, value:2, text:'2'},
-    {key:10, value:10, text:'10'},
-    {key:20, value:20, text:'20'},
-    {key:50, value:50, text:'50'},
-    {key:100, value:100, text:'100'}
+    { key: 1, value: 1, text: '1' },
+    { key: 2, value: 2, text: '2' },
+    { key: 10, value: 10, text: '10' },
+    { key: 20, value: 20, text: '20' },
+    { key: 50, value: 50, text: '50' },
+    { key: 100, value: 100, text: '100' }
 ]
 
 class StudentList extends Component {
@@ -51,7 +51,9 @@ class StudentList extends Component {
                 total: 0,
                 page: 1,
                 number_of_rows: 5
-            }
+            },
+            enableInput: true,
+            btnHidden: true
         }
     }
 
@@ -65,12 +67,12 @@ class StudentList extends Component {
         })
         let url = "http://127.0.0.1:9999/studentlist?std_name=" + value_clone.std_name
             + "&std_id=" + value_clone.std_id + "&std_room=" + value_clone.std_room
-            + "&page=" + this.state.page + "&number_of_rows="+ this.state.number_of_rows
+            + "&page=" + this.state.page + "&number_of_rows=" + this.state.number_of_rows
         Axios.get(url)
             .then((res) => {
                 const student = res.data.data;
                 const total_record = res.data.total;
-                this.setState({ isLoading: false, student, total_record});
+                this.setState({ isLoading: false, student, total_record });
             }).catch((error) => {
                 console.log(error)
             });
@@ -79,6 +81,9 @@ class StudentList extends Component {
     handleSearchChange = (e, { value, box }) => {
         let value_clone = this.state.value
         value_clone[box] = value
+        if (value === "") {
+            window.location.reload();
+        }
         this.setState({
             isLoading: true,
             value: value_clone, box
@@ -110,9 +115,9 @@ class StudentList extends Component {
     }
 
     query_history = (obj) => {
-        const {std_id, page, number_of_rows} = obj
+        const { std_id, page, number_of_rows } = obj
         let url = "http://127.0.0.1:9999/stdhistory?std_id=" + std_id
-            + "&page=" + page + "&number_of_rows="+number_of_rows
+            + "&page=" + page + "&number_of_rows=" + number_of_rows
         Axios.get(url)
             .then((res) => {
                 const modal = {
@@ -122,7 +127,7 @@ class StudentList extends Component {
                     page: page,
                     number_of_rows: number_of_rows
                 }
-                this.setState({modal});
+                this.setState({ modal });
             }).catch((error) => {
                 console.log(error)
             });
@@ -140,9 +145,9 @@ class StudentList extends Component {
             .then((res) => {
                 let base64Flag = 'data:image/jpeg;base64,';
                 let student_clone = student
-                if (res.data.byteLength > 100 ){
+                if (res.data.byteLength > 100) {
                     student_clone.avatar = base64Flag + this.arrayBufferToBase64(res.data)
-                }else{
+                } else {
                     student_clone.avatar = 'https://react.semantic-ui.com/images/avatar/large/rachel.png'
                 }
                 // console.log(student_clone.avatar)
@@ -164,7 +169,7 @@ class StudentList extends Component {
         return window.btoa(binary);
     };
     closeModal = () => {
-        this.setState({ 
+        this.setState({
             openModal: false,
             modal: {
                 std_id: null,
@@ -173,7 +178,7 @@ class StudentList extends Component {
                 page: 1,
                 number_of_rows: 5
             }
-         })
+        })
     }
 
     handleSort = (clickedColumn) => () => {
@@ -198,28 +203,35 @@ class StudentList extends Component {
     }
 
     query_student = (obj) => {
-        const {value, column, direction, page, number_of_rows} = obj
+        const { value, column, direction, page, number_of_rows } = obj
         let url = "http://127.0.0.1:9999/studentlist?std_name=" + value.std_name
             + "&std_id=" + value.std_id + "&std_room=" + value.std_room
-            + "&page=" + page + "&number_of_rows="+number_of_rows
-        if (direction){
-            url += "&sort=" + column+ "&direction=" + direction
+            + "&page=" + page + "&number_of_rows=" + number_of_rows
+        if (direction) {
+            url += "&sort=" + column + "&direction=" + direction
         }
         Axios.get(url)
             .then((res) => {
                 const student = res.data.data;
                 const total_record = res.data.total
-                this.setState({student, value, column, direction, page, number_of_rows, total_record});
+                this.setState({ student, value, column, direction, page, number_of_rows, total_record });
             }).catch((error) => {
                 console.log(error)
             });
     }
 
-    onResultSelect = (event,data) => {
+    onResultSelect = (event, data) => {
         const state_clone = this.state
         state_clone.number_of_rows = data.value
         state_clone.page = 1
         this.query_student(state_clone)
+    }
+
+    btnUpdate = (event) => {
+        this.setState({ enableInput: false, btnHidden: false });
+    }
+    editInfo = (event) => {
+        this.state.selectedStudent.std_name = ""
     }
 
     componentDidMount() {
@@ -231,14 +243,19 @@ class StudentList extends Component {
         return (
             <Form className="segment centered" >
                 <Modal open={this.state.openModal} onClose={this.closeModal} className="segment centered">
-                    <Modal.Header>Lịch sử hoạt động</Modal.Header>
+                    <Modal.Header>Lịch sử hoạt động
+                    <Button icon='edit' onClick={this.btnUpdate} floated='right'></Button>
+                    </Modal.Header>
                     <Modal.Content image>
-                        {/* <Image wrapped size='medium' src='https://react.semantic-ui.com/images/avatar/large/rachel.png' /> */}
                         <Image width="260" height="260" wrapped src={this.state.selectedStudent.avatar} />
                         <Modal.Description>
-                            <h4>Họ và tên: {this.state.selectedStudent.std_name}</h4>
-                            <h4>MSSV: {this.state.selectedStudent.std_id}</h4>
-                            <h4>Phòng: {this.state.selectedStudent.std_room}</h4>
+                            <h4 >Họ và tên:</h4><Input disabled={this.state.enableInput} onChange={this.editInfo} type="text">{this.state.selectedStudent.std_name}</Input>
+                            <h4>MSSV:</h4><Input disabled={this.state.enableInput}>{this.state.selectedStudent.std_id}</Input>
+                            <h4>Phòng: </h4><Input disabled={this.state.enableInput}>{this.state.selectedStudent.std_room}</Input>
+                            <Button.Group  floated='right' >
+                            {/* <Button color='red' inverted basic={this.state.btnHidden} floated='right'><Icon name='remove'/> No</Button>
+                            <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark'/> Yes</Button> */}
+                            </Button.Group>
                         </Modal.Description>
                     </Modal.Content>
                     <Table celled>
@@ -268,8 +285,8 @@ class StudentList extends Component {
                                             firstItem={null}
                                             lastItem={null}
                                             siblingRange={1}
-                                            totalPages={Math.ceil(this.state.modal.total_record/this.state.modal.number_of_rows)} 
-                                            onPageChange={this.onHistoryPageChange}/>
+                                            totalPages={Math.ceil(this.state.modal.total_record / this.state.modal.number_of_rows)}
+                                            onPageChange={this.onHistoryPageChange} />
                                     </Menu>
                                 </Table.HeaderCell>
                             </Table.Row>
@@ -287,6 +304,7 @@ class StudentList extends Component {
                             onSearchChange={_.debounce(this.handleSearchChange, 500, {
                                 leading: true,
                             })}
+                            onKeyPress={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                             results={results}
                             value={value.std_name}
                             box={"std_name"}
@@ -301,6 +319,7 @@ class StudentList extends Component {
                             onSearchChange={_.debounce(this.handleSearchChange, 500, {
                                 leading: true,
                             })}
+                            onKeyPress={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                             results={results}
                             value={value.std_id}
                             box={"std_id"}
@@ -315,6 +334,7 @@ class StudentList extends Component {
                             onSearchChange={_.debounce(this.handleSearchChange, 500, {
                                 leading: true,
                             })}
+                            onKeyPress={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                             results={results}
                             value={value.std_room}
                             box={"std_room"}
@@ -349,7 +369,7 @@ class StudentList extends Component {
                     <Table.Footer>
                         <Table.Row >
                             <Table.HeaderCell colSpan='5'>
-                            <Dropdown options={numofRow} value={this.state.number_of_rows} selection closeOnChange={true} onChange={this.onResultSelect}/>
+                                <Dropdown options={numofRow} value={this.state.number_of_rows} selection closeOnChange={true} onChange={this.onResultSelect} />
                                 <Menu floated='right' pagination>
                                     <Pagination
                                         boundaryRange={0}
@@ -358,15 +378,15 @@ class StudentList extends Component {
                                         firstItem={null}
                                         lastItem={null}
                                         siblingRange={1}
-                                        totalPages={Math.ceil(this.state.total_record/this.state.number_of_rows)} 
-                                        onPageChange={this.onPageChange}/>
+                                        totalPages={Math.ceil(this.state.total_record / this.state.number_of_rows)}
+                                        onPageChange={this.onPageChange} />
                                 </Menu>
                             </Table.HeaderCell>
                         </Table.Row>
                     </Table.Footer>
 
                 </Table>
-                
+
             </Form>
         )
     };
