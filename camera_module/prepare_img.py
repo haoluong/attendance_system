@@ -57,6 +57,7 @@ def main(_argv):
     processed_total = 0
     CLASS_NAMES = np.array(os.listdir(FLAGS.folder_path))
     temp = os.listdir(FLAGS.destination_dir)
+    temp.sort()
     CLASS_NAMES.sort()
     for f in CLASS_NAMES:
         processed_image = 0
