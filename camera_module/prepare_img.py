@@ -53,78 +53,75 @@ def main(_argv):
     else:
         print("[*] Cannot find ckpt from {}.".format(checkpoint_dir))
         exit()
-    with open(FLAGS.destination_dir+'log.txt', 'a+') as log_txt:
-        total = 0
-        processed_total = 0
-        CLASS_NAMES = np.array(os.listdir(FLAGS.folder_path))
-        CLASS_NAMES.sort()
-        for f in CLASS_NAMES:
-            processed_image = 0
-            ######################################
-            # Need modified for using
-            ######################################
-            if os.path.isfile(FLAGS.folder_path+f):
-                continue
-            temp = os.listdir(FLAGS.destination_dir)
-            if f in temp and f != temp[-1]:
+    total = 0
+    processed_total = 0
+    CLASS_NAMES = np.array(os.listdir(FLAGS.folder_path))
+    temp = os.listdir(FLAGS.destination_dir)
+    CLASS_NAMES.sort()
+    for f in CLASS_NAMES:
+        processed_image = 0
+        ######################################
+        # Need modified for using
+        ######################################
+        if os.path.isfile(FLAGS.folder_path+f):
+            continue
+        if f in temp and f != temp[-1]:
+          continue
+        items = os.listdir(FLAGS.folder_path+f)
+        mkdir(FLAGS.destination_dir+f)
+        for path in items:
+            frame = cv2.imread(FLAGS.folder_path + f +'/'+ path)
+            if frame is None:
               continue
-            items = os.listdir(FLAGS.folder_path+f)
-            mkdir(FLAGS.destination_dir+f)
-            for path in items:
-                frame = cv2.imread(FLAGS.folder_path + f +'/'+ path)
-                if frame is None:
-                  continue
-                frame_height, frame_width, _ = frame.shape
-                img = np.float32(frame.copy())
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            frame_height, frame_width, _ = frame.shape
+            img = np.float32(frame.copy())
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-                # pad input image to avoid unmatched shape problem
-                img, pad_params = pad_input_image(img, max_steps=max(cfg['steps']))
+            # pad input image to avoid unmatched shape problem
+            img, pad_params = pad_input_image(img, max_steps=max(cfg['steps']))
 
-                # run model
-                outputs = model(img[np.newaxis, ...]).numpy()
+            # run model
+            outputs = model(img[np.newaxis, ...]).numpy()
 
-                # recover padding effect
-                outputs = recover_pad_output(outputs, pad_params)
-                if len(outputs) < 1:
-                  continue
-                ann = max(outputs, key=lambda x: (x[2]-x[0])*(x[3]-x[1]))
-                b_box = int(ann[0] * frame_width), int(ann[1] * frame_height), \
-                        int(ann[2] * frame_width), int(ann[3] * frame_height)
-                if (b_box[0]<0) or (b_box[1]<0) or (b_box[2]>=frame_width) or (b_box[3]>=frame_height):
-                  continue
-                keypoints = {
-                    'left_eye': (ann[4] * frame_width,ann[5] * frame_height),
-                    'right_eye': (ann[6] * frame_width,ann[7] * frame_height),
-                    'nose': (ann[8], ann[9]),
-                    'left_mouth': (ann[10] * frame_width, ann[11] * frame_height),
-                    'right_mouth': (ann[12] * frame_width,ann[13] * frame_height),
-                }
-                # croped_image = frame[b_box[1]:b_box[3],b_box[0]:b_box[2], :]
-                # out_frame = cv2.resize(croped_image, (112,112), interpolation=cv2.INTER_CUBIC)
-                out_frame = aligner.align(frame, keypoints, b_box)
-                # for i in range(4,14):
-                #     if i%2 == 0:
-                #         ann[i] = int(ann[i]*frame_width)
-                #     else:
-                #         ann[i] = int(ann[i]*frame_height)
-                # out_frame = norm_crop(frame, np.array([ann[4:6],ann[6:8],ann[8:10],ann[10:12],ann[12:14]]))
-                try:
-                    cv2.imwrite(FLAGS.destination_dir + f +'/'+ path, out_frame)
-                    log_txt.write(FLAGS.destination_dir + f +'/'+ path+"\n")
-                    processed_image += 1
-                except FileExistsError as e:
-                    pass
-            
-            print(f + " Done")
-            log_txt.write(f + " Processed: " + str(processed_image) + ' / ' + str(len(items)) +"\n")
-            total += len(items)
-            processed_total += processed_image
-        log_txt.write( "Processed total: " + str(processed_total) + ' / ' + str(total))
+            # recover padding effect
+            outputs = recover_pad_output(outputs, pad_params)
+            if len(outputs) < 1:
+              continue
+            ann = max(outputs, key=lambda x: (x[2]-x[0])*(x[3]-x[1]))
+            b_box = int(ann[0] * frame_width), int(ann[1] * frame_height), \
+                    int(ann[2] * frame_width), int(ann[3] * frame_height)
+            if (b_box[0]<0) or (b_box[1]<0) or (b_box[2]>=frame_width) or (b_box[3]>=frame_height):
+              continue
+            keypoints = {
+                'left_eye': (ann[4] * frame_width,ann[5] * frame_height),
+                'right_eye': (ann[6] * frame_width,ann[7] * frame_height),
+                'nose': (ann[8], ann[9]),
+                'left_mouth': (ann[10] * frame_width, ann[11] * frame_height),
+                'right_mouth': (ann[12] * frame_width,ann[13] * frame_height),
+            }
+            # croped_image = frame[b_box[1]:b_box[3],b_box[0]:b_box[2], :]
+            # out_frame = cv2.resize(croped_image, (112,112), interpolation=cv2.INTER_CUBIC)
+            out_frame = aligner.align(frame, keypoints, b_box)
+            # for i in range(4,14):
+            #     if i%2 == 0:
+            #         ann[i] = int(ann[i]*frame_width)
+            #     else:
+            #         ann[i] = int(ann[i]*frame_height)
+            # out_frame = norm_crop(frame, np.array([ann[4:6],ann[6:8],ann[8:10],ann[10:12],ann[12:14]]))
+            try:
+                cv2.imwrite(FLAGS.destination_dir + f +'/'+ path, out_frame)
+                processed_image += 1
+            except FileExistsError as e:
+                pass
+        
+        print(f + " Done")
+        total += len(items)
+        processed_total += processed_image
 if __name__ == '__main__':
     try:
         app.run(main)
     except SystemExit:
         pass
+
 
 
