@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Button, Grid, Form, Header, Image, Segment, Message } from 'semantic-ui-react'
+import { Button, Grid, Form, Image, Segment } from 'semantic-ui-react'
 import Axios from 'axios'
 import History from '../../components/History/history';
 

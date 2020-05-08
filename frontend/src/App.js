@@ -5,7 +5,8 @@ import Login from './containers/Login/login'
 import History from './components/History/history'
 import StudentList from './containers/StudentList/index'
 import NewStudent from './containers/NewStudent/index'
-import Message from './containers/Message/index'
+import MessageSuccess from './containers/Message/success'
+import MessageError from './containers/Message/error'
 class App extends Component {
   constructor(props) {
     super(props);
@@ -18,7 +19,8 @@ class App extends Component {
           <Route exact path="/" component={Home} />
           <Route exact path="/studentlist" component={StudentList} />
           <Route exact path="/newstudent" component={NewStudent} />
-          <Route exact path="/message" component={Message} />
+          <Route exact path="/messagesuccess" component={MessageSuccess} />
+          <Route exact path="/messageerror" component={MessageError} />
           {/* <Route path="" component={NotFound} /> */}
         </Router>
       </div>
