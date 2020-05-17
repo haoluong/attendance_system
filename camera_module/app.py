@@ -31,6 +31,11 @@ def login():
             return jsonify(data)
     return jsonify(data)
 
+# @app.route("/home", methods=["POST"])
+# @cross_origin()
+# def get_camera():
+#    image = request.files["image"].read()
+
 @app.route("/studentlist", methods=["GET"])
 @cross_origin()
 def get_studentList():
@@ -91,8 +96,6 @@ def get_studentList():
 @app.route("/newstudent", methods=["POST"])
 @cross_origin()
 def add_stdinfo():
-   # print(request.files)
-   
    std_id = request.form['std_id']
    std_name = request.form['std_name']
    std_room = request.form['std_room']

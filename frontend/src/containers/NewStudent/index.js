@@ -62,19 +62,19 @@ class NewStudent extends Component {
           image:e.target.files[0],
         });
     }
-    uploadFile = event => {
-        event.preventDefault();
-        const formData = new FormData();
-        formData.append('image', event.target.files[0])
-        Axios.post(
-            'http://127.0.0.1:9999/newstudent',
-            formData,
-            { headers: { 'content-type': 'multipart/form-data' } }
-        ).then((res) => {
-        }).catch((error) => {
-            console.log(error)
-        });
-    }
+    // uploadFile = event => {
+    //     event.preventDefault();
+    //     const formData = new FormData();
+    //     formData.append('image', event.target.files[0])
+    //     Axios.post(
+    //         'http://127.0.0.1:9999/newstudent',
+    //         formData,
+    //         { headers: { 'content-type': 'multipart/form-data' } }
+    //     ).then((res) => {
+    //     }).catch((error) => {
+    //         console.log(error)
+    //     });
+    // }
 
     render() {
         return (
