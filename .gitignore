@@ -135,7 +135,7 @@ dmypy.json
 
 
 #Node modules
-*/node_modules/
+*/frontend/node_modules/*
 
 */__pycache__/
 

@@ -6,7 +6,7 @@ def base64_encode_image(a):
 	# base64 encode the input NumPy array
 	return base64.b64encode(a).decode("utf-8")
 
-def base64_decode_image(a, dtype, shape, byte_convert=True):
+def base64_decode_image(a, dtype="uint8", shape=None, byte_convert=True):
 	# if this is Python 3, we need the extra step of encoding the
 	# serialized NumPy string as a byte object
 	if sys.version_info.major == 3 and byte_convert:

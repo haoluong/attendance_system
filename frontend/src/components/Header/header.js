@@ -6,25 +6,45 @@ import History from '../History/history';
 class Header extends Component {
     state = { activeItem: '' }
 
-    handleItemClick = (e, { id }) => {
-        this.setState({ activeItem: id })
-        History.push('/' + id)
+    handleItemClick = (e, { name }) => {
+        this.setState({ activeItem: name })
+        History.push('/' + name)
     }
     handleLogout() {
         localStorage.clear();
         History.push('/login');
     }
     render() {
-        const { activeItem, fixed } = this.state
+        const { activeItem } = this.state
 
         return (
             <Menu secondary>
                 <Menu.Item as='a' header>
-                        <Image size='small' src='/Logo_KTX.png'/>
-                    </Menu.Item>
-                <Container centered>
-                    
-                    <Menu.Item id="" name="Trang chủ" onClick={this.handleItemClick} icon='home'/>
+                    <Image size='small' src='/Logo_KTX.png' />
+                </Menu.Item>
+                <Menu.Item
+                    name=''
+                    active={activeItem === ''}
+                    content='Camera'
+                    onClick={this.handleItemClick}
+                />
+
+                <Menu.Item
+                    name='studentlist'
+                    active={activeItem === 'studentlist'}
+                    content='Danh sách sinh viên'
+                    onClick={this.handleItemClick}
+                />
+
+                <Menu.Item
+                    name='newstudent'
+                    active={activeItem === 'newstudent'}
+                    content='Thêm sinh viên'
+                    onClick={this.handleItemClick}
+                />
+                {/* <Container centered>
+
+                    <Menu.Item id="" name="Trang chủ" onClick={this.handleItemClick} icon='home' />
 
                     <Dropdown item text="Danh mục" >
                         <Dropdown.Menu>
@@ -34,9 +54,9 @@ class Header extends Component {
                         </Dropdown.Menu>
                     </Dropdown>
 
-                </Container>
+                </Container> */}
                 <Menu.Item position='right'>
-                    <Button onClick={this.handleLogout} icon="shutdown" inverted color="blue"style={{ marginRight: '3.5em' }}/>
+                    <Button onClick={this.handleLogout} icon="shutdown" inverted color="blue" style={{ marginRight: '3.5em' }} />
                 </Menu.Item>
             </Menu>
         )
