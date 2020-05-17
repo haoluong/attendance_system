@@ -6,6 +6,11 @@ import requests
 import os
 from PIL import Image
 import io
+from modules.retinaface import RetinaFace
+from modules.mobilenetv2 import MobileNetV2
+from modules.db_redis import Rediser
+from utils.helpers import base64_decode_image
+import settings
 # from helpers import decode_image
 app = flask.Flask(__name__)
 cors = CORS(app)
@@ -16,7 +21,10 @@ user = db.users
 student_status = db.student_status
 student_info = db.student_info
 history = client.history
-
+db_redis = Rediser(settings)
+detect_model = RetinaFace(settings.CFG_RETINA)
+recog_model = MobileNetV2(settings.CHECKPOINT_PATH, db_redis)
+print("*All model loaded")
 @app.route("/login", methods=["POST"])
 @cross_origin()
 def login():
@@ -142,6 +150,19 @@ def get_std_history():
    end = None if number_of_rows * page > len(data) else number_of_rows * page
    data = data[number_of_rows*(page-1):end]
    return jsonify({"data":data, "total":total})
+
+@app.route("/attend", methods=["POST"])
+@cross_origin()
+def attend():
+   #import pdb; pdb.set_trace()
+   image = request.form["image"]
+   decoded_image = base64_decode_image(image, shape=(1280,720,3))
+   b_boxes, faces = detect_model.extract_faces(decoded_image)
+   results = recog_model.predict(faces)
+   label, prob = results[0]
+   if prob < 0.5:
+      label = "Unknown"
+   return jsonify({"id": label, "prob": prob})
 
 if __name__ == "__main__":
    print("* Starting web service...")

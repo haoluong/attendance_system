@@ -29,6 +29,7 @@ class Home extends Component {
         }
     }
     setRef = webcam => {
+        console.log(webcam)
         this.webcam = webcam;
     };
 
@@ -62,6 +63,20 @@ class Home extends Component {
 
     componentDidMount() {
         this.fileSelector = buildFileSelector();
+        this.interval = setInterval(() => {
+            const imageSrc = this.webcam.getScreenshot();
+            const formData = new FormData();
+            formData.append('image', imageSrc)
+            Axios.post(
+                'http://127.0.0.1:9999/attend',
+                formData,
+                { headers: { 'content-type': 'multipart/form-data' } }
+            ).then((res) => {
+                console.log(res)
+            }).catch((error) => {
+                console.log(error)
+            });
+        }, 1000);
     }
 
 
@@ -83,6 +98,7 @@ class Home extends Component {
                     <Grid.Row stretched>
                         <Grid.Column width={8} className="noPadding">
                             <Webcam
+                                mirrored={true}
                                 audio={false}
                                 ref={this.setRef}
                                 screenshotFormat="image/jpeg"
