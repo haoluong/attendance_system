@@ -5,15 +5,7 @@ import os
 from modules.retinaface import RetinaFace
 from modules.mobilenetv2 import MobileNetV2
 from modules.db_redis import Rediser
-# connect to Redis server   
-db_redis = Rediser(settings)
-print("*Database connected")
-# load the pre-trained Keras model (here we are using a model
-# pre-trained on ImageNet and provided by Keras, but you can
-# substitute in your own networks just as easily)
-detect_model = RetinaFace(settings.CFG_RETINA)
-recog_model = MobileNetV2(settings.CHECKPOINT_PATH, db_redis)
-print("*All model loaded")
+
 def read_image(folder_path):
     images = []
     for path in os.listdir(folder_path):
@@ -24,6 +16,15 @@ def read_image(folder_path):
     return images
 
 def add_embeds(images, student_id):
+    # connect to Redis server   
+    db_redis = Rediser(settings)
+    print("*Database connected")
+    # load the pre-trained Keras model (here we are using a model
+    # pre-trained on ImageNet and provided by Keras, but you can
+    # substitute in your own networks just as easily)
+    detect_model = RetinaFace(settings.CFG_RETINA)
+    recog_model = MobileNetV2(settings.CHECKPOINT_PATH, db_redis)
+    print("*All model loaded")
     embeds = None
     labels = []
     for image in images:
@@ -57,4 +58,3 @@ def remove_student(student_id):
     db_redis = Rediser(settings)
     print("*Database connected")
     return db_redis.remove_student(student_id)
-remove_student('123123123')

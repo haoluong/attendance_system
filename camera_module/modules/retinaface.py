@@ -41,7 +41,7 @@ class RetinaFace():
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img_height, img_width,_ = img.shape
         if img.shape[1] != 640:
-            img = cv2.resize(img, (int(img_height*640/img_width),640), interpolation=cv2.INTER_CUBIC)
+            img = cv2.resize(img, (480,640), interpolation=cv2.INTER_CUBIC)
         # pad input image to avoid unmatched shape problem
         img, pad_params = pad_input_image(img, max_steps=32)
         

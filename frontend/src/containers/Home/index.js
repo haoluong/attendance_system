@@ -12,7 +12,7 @@ function buildFileSelector() {
     // fileSelector.setAttribute('value', source);
     return fileSelector;
 }
-
+const SERVER = '127.0.0.1:9999'
 class Home extends Component {
     constructor(props) {
         super(props);
@@ -20,8 +20,10 @@ class Home extends Component {
             student: {
                 std_name: '',
                 std_id: '',
-                std_room: ''
+                std_room: '',
+                avatar: 'bk1.png'
             },
+            image_link: '',
             imageCaptured: '',
             camHidden: false,
             imgHidden: true, 
@@ -29,35 +31,41 @@ class Home extends Component {
         }
     }
     setRef = webcam => {
-        console.log(webcam)
         this.webcam = webcam;
     };
 
-    capture = () => {
-        const imageSrc = this.webcam.getScreenshot();
+    recog_image = () => {
         const formData = new FormData();
-        this.setState({
-            imageCaptured: imageSrc,
-            camHidden: true,
-            imgHidden: false
-        })
-        formData.append('image', imageSrc)
+        formData.append('image', this.state.imageCaptured)
         Axios.post(
-            'http://127.0.0.1:9999/home',
+            'http://'+SERVER+'/attend',
             formData,
             { headers: { 'content-type': 'multipart/form-data' } }
         ).then((res) => {
+            let prediction = res.data
+                    this.setState({
+                        student:{
+                            std_name: prediction.std_name,
+                            std_id: prediction.std_id,
+                            std_room: prediction.std_room,
+                            avatar: prediction.avatar === 'bk1.png' ? 'bk1.png':'data:image/jpeg;base64,' + prediction.avatar
+                        },
+                        imgHidden: true,
+                        camHidden: false
+                    })
         }).catch((error) => {
             console.log(error)
         });
     };
-    handleFileSelect = (event) => {
+    onChange = (event) => {
         event.preventDefault();
-        this.fileSelector.click();
-        // let link_created = event.target.files[0] ? URL.createObjectURL(event.target.files[0]) : ''
-        // this.setState({
-        //   image:event.target.files[0],
-        // });
+        let link_created = event.target.files[0] ? URL.createObjectURL(event.target.files[0]) : ''
+        this.setState({
+            image_link:link_created,
+            imageCaptured: event.target.files[0],
+            camHidden: true,
+            imgHidden: false
+        });
     }
 
 
@@ -67,23 +75,32 @@ class Home extends Component {
             const imageSrc = this.webcam.getScreenshot();
             const formData = new FormData();
             formData.append('image', imageSrc)
-            Axios.post(
-                'http://127.0.0.1:9999/attend',
-                formData,
-                { headers: { 'content-type': 'multipart/form-data' } }
-            ).then((res) => {
-                console.log(res)
+            if (!this.state.camHidden)
+                Axios.post(
+                    'http://127.0.0.1:9999/attend',
+                    formData,
+                    { headers: { 'content-type': 'multipart/form-data' } }
+                ).then((res) => {
+                    let prediction = res.data
+                    this.setState({
+                        student:{
+                            std_name: prediction.std_name,
+                            std_id: prediction.std_id,
+                            std_room: prediction.std_room,
+                            avatar: prediction.avatar === 'bk1.png' ? 'bk1.png':'data:image/jpeg;base64,' + prediction.avatar
+                        }
+                    })
             }).catch((error) => {
                 console.log(error)
             });
-        }, 1000);
+        }, 30000);
     }
 
 
     render() {
         const videoConstraints = {
-            width: 1280,
-            height: 720,
+            width: 640,
+            height: 480,
             facingMode: "user"
         };
         return (
@@ -103,23 +120,27 @@ class Home extends Component {
                                 ref={this.setRef}
                                 screenshotFormat="image/jpeg"
                                 videoConstraints={videoConstraints} hidden={this.state.camHidden} />
-                            <Image src={this.state.imageCaptured} hidden={this.state.imgHidden}/>
+                            <Image src={this.state.image_link} hidden={this.state.imgHidden}/>
                         </Grid.Column>
                         <Grid.Column width={4} className="noPadding">
-                            <Image src='bk1.png' wrapped />
+                            <Image src={this.state.student.avatar} wrapped />
                         </Grid.Column>
                         <Grid.Column width={4} className="noPadding">
                             <Modal.Description>
-                                <h4 >Họ và tên:</h4>
-                                <h4>MSSV:</h4>
-                                <h4>Phòng: </h4>
+                                <h4 >Họ và tên:{this.state.student.std_name}</h4>
+                                <h4>MSSV:{this.state.student.std_id}</h4>
+                                <h4>Phòng:{this.state.student.std_room}</h4>
                             </Modal.Description>
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row centered columns={3}>
                         <Grid.Column width={10}>
-                            <Button primary onClick={this.capture}>Chụp</Button>
-                            <Button primary onClick={this.handleFileSelect}>Tải ảnh</Button>
+                            <Button as="label" htmlFor="file" type="button">
+                                    Chọn hình ảnh
+                                </Button>
+                                <input type="file" id="file" hidden onChange={this.onChange} />
+                            <Button primary onClick={this.recog_image}>Nhận dạng ảnh</Button>
+                            
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

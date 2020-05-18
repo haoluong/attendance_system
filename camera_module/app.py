@@ -8,11 +8,12 @@ from PIL import Image
 import io
 from _thread import start_new_thread
 from sign_student import sign_student_web
-from modules.retinaface import RetinaFace
-from modules.mobilenetv2 import MobileNetV2
 from modules.db_redis import Rediser
-from utils.helpers import base64_decode_image
+from utils.helpers import base64_decode_image,base64_encode_image
 import settings
+import redis, uuid, json
+import base64, cv2
+import numpy as np
 # from helpers import decode_image
 app = flask.Flask(__name__)
 cors = CORS(app)
@@ -23,10 +24,8 @@ user = db.users
 student_status = db.student_status
 student_info = db.student_info
 history = client.history
-db_redis = Rediser(settings)
-detect_model = RetinaFace(settings.CFG_RETINA)
-recog_model = MobileNetV2(settings.CHECKPOINT_PATH, db_redis)
-print("*All model loaded")
+redis_db = redis.StrictRedis(host=settings.REDIS_HOST,
+	port=settings.REDIS_PORT, db=settings.REDIS_DB)
 @app.route("/login", methods=["POST"])
 @cross_origin()
 def login():
@@ -153,16 +152,66 @@ def get_std_history():
 @app.route("/attend", methods=["POST"])
 @cross_origin()
 def attend():
-   #import pdb; pdb.set_trace()
-   image = request.form["image"]
-   decoded_image = base64_decode_image(image, shape=(1280,720,3))
-   b_boxes, faces = detect_model.extract_faces(decoded_image)
-   results = recog_model.predict(faces)
-   label, prob = results[0]
-   if prob < 0.5:
-      label = "Unknown"
-   return jsonify({"id": label, "prob": prob})
+   # initialize the data dictionary that will be returned from the
+   # view
+   data = {"success": False}
+   # read the image in PIL format and prepare it for
+   # classification
+   # import pdb; pdb.set_trace()
+   image = request.form.get("image", '')
+   if image == '':
+      image = request.files["image"].read()
+      imagePIL = Image.open(io.BytesIO(image))
+   else:
+      image = image[22:]  #ignore 'data:image/jpeg;base64'
+      decoded_image = base64.b64decode(str(image))
+      imagePIL = Image.open(io.BytesIO(decoded_image))
+   image_arr = np.array(imagePIL)
+   image_arr = cv2.resize(image_arr, (640,480), interpolation=cv2.INTER_LINEAR)
+   image_arr = image_arr[:,:,::-1]#cv2.flip(image_arr,1)
+   k = str(uuid.uuid4())
+   decoded_image = base64_encode_image(image_arr.astype(np.float32))
+   d = {"id": k, "image": decoded_image}
+   redis_db.rpush(settings.IMAGE_QUEUE, json.dumps(d))
 
+   # keep looping until our model server returns the output
+   # predictions
+   while True:
+      # attempt to grab the output predictions
+      output = redis_db.get(k)
+
+      # check to see if our model has classified the input
+      # image
+      if output is not None:
+         # add the output predictions to our data
+         # dictionary so we can return it to the client
+         output = json.loads(output.decode("utf-8"))
+         print("RESULTS", output["label"])
+         if output["label"] != 'unknown':
+            std = student_info.find_one({"std_id":output["label"]})
+            data["std_id"] = std["std_id"]
+            data["std_name"] = std["std_name"]
+            data["std_room"] = std["std_room"]
+            data["avatar"] = 'bk1.png'  #base64.encodestring(std["avatar"])
+         else:
+            data["std_id"] = "unknown"
+            data["std_name"] = "unknown"
+            data["std_room"] = "unknown"
+            data["avatar"] = 'bk1.png'
+         # delete the result from the database and break
+         # from the polling loop
+         redis_db.delete(k)
+         break
+
+      # sleep for a small amount to give the model a chance
+      # to classify the input image
+      # time.sleep(settings.CLIENT_SLEEP)
+
+   # indicate that the request was a success
+   data["success"] = True
+
+   # return the data dictionary as a JSON response
+   return jsonify(data)
 if __name__ == "__main__":
    print("* Starting web service...")
    app.run(port=9999,debug=True)
