@@ -38,7 +38,7 @@ class RetinaFace():
 
     def __detect_faces(self, frame):
         img = np.float32(frame.copy())
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img_height, img_width,_ = img.shape
         if img.shape[1] != 640:
             img = cv2.resize(img, (480,640), interpolation=cv2.INTER_CUBIC)
