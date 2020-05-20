@@ -192,7 +192,8 @@ def attend():
             data["std_id"] = std["std_id"]
             data["std_name"] = std["std_name"]
             data["std_room"] = std["std_room"]
-            data["avatar"] = 'bk1.png'  #base64.encodestring(std["avatar"])
+            # data["avatar"] = 'bk1.png'  
+            data["avatar"] = base64.encodestring(std["avatar"])
          else:
             data["std_id"] = "unknown"
             data["std_name"] = "unknown"
