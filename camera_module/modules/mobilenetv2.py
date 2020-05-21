@@ -28,6 +28,7 @@ class MobileNetV2():
             self.__load_embeds()
         batch = preprocess_input(batch)
         embeds = self.model(batch)
+        embeds /= np.linalg.norm(embeds, axis=-1)[:, np.newaxis]
         res = [self.__classify(e) for e in embeds]#self.__cosine_classify(embeds)
         return res
 
@@ -41,8 +42,10 @@ class MobileNetV2():
             same_label_idx = np.where(self.labels == predict_label)[0]
             same_label_idx = np.delete(same_label_idx, np.where(same_label_idx == min_dis_idx)[0])
             filter_dis = np.delete(dis_,same_label_idx)
-            func = np.vectorize(lambda x: np.exp(-x))
-            prob = np.exp(-dis_[min_dis_idx])/np.sum(func(filter_dis))
+            func = np.vectorize(lambda x: np.exp(-x*50))
+            prob = np.exp(-dis_[min_dis_idx]*50)/np.sum(func(filter_dis))
+
+            print(prob)
         # return labels[np.argmin(dis_)], np.amin(dis_)
         return predict_label, prob
 
@@ -55,7 +58,8 @@ class MobileNetV2():
 
     def inference(self, batch):
         batch = preprocess_input(batch)
-        return self.model(batch).numpy()
+        batch_numpy = self.model(batch).numpy()
+        return batch_numpy/np.linalg.norm(batch_numpy, axis=-1)[:, np.newaxis]
 
     def get_sequence_label(self, seq):
         if self.__check_update_embeds():

@@ -38,11 +38,16 @@ def classify_process():
         b_boxes, faces = detect_model.extract_faces(image)
         # inference the batch
         print("* Batch size: {}".format(faces.shape))
-        results = recog_model.predict(faces)
-        label, prob = results[0] if len(results)>0 else ('0',0)
-        if prob < 0.5:
-            label = "unknown"
-        db_redis.db.set(frameID, json.dumps({"label":label, "prob": str(prob)}))
+        if "sign" in frameID:
+            std_id = frameID.split('_')[1]
+            embedding_vector = recog_model.inference(faces)
+            db_redis.add_embeds(embedding_vector, [std_id])
+        else:
+            results = recog_model.predict(faces)
+            label, prob = results[0] if len(results)>0 else ('0',0)
+            if prob < 0.5:
+                label = "unknown"
+            db_redis.db.set(frameID, json.dumps({"label":label, "prob": str(prob)}))
 
 
         # sleep for a small amount

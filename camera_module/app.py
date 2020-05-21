@@ -7,7 +7,7 @@ import os
 from PIL import Image
 import io
 from _thread import start_new_thread
-from sign_student import sign_student_web
+# from sign_student import sign_student_web
 from modules.db_redis import Rediser
 from utils.helpers import base64_decode_image,base64_encode_image
 import settings
@@ -103,7 +103,9 @@ def get_studentList():
    return jsonify({"data": data, "total": total})
 
 def read_img_buffer(buffer):
-   return Image.open(io.BytesIO(buffer))
+   imagePIL = Image.open(io.BytesIO(buffer))
+   image_arr = np.array(imagePIL)
+   return cv2.resize(image_arr, (640,480), interpolation=cv2.INTER_LINEAR)
 
 @app.route("/newstudent", methods=["POST"])
 @cross_origin()
@@ -119,7 +121,11 @@ def add_stdinfo():
    new_student["std_name"] = std_name
    new_student["std_room"] = std_room
    new_student["avatar"] = avatar
-   start_new_thread(sign_student_web, (images, std_id))
+   k = "sign_"+std_id
+   for img in images:
+      encoded_image = base64_encode_image(img.astype(np.float32))
+      d = {"id": k, "image": encoded_image}
+      redis_db.rpush(settings.IMAGE_QUEUE, json.dumps(d))
    new_stdList = student_info.insert_one(new_student)
    return jsonify({"status": True})
 
@@ -169,8 +175,8 @@ def attend():
    imagePIL = Image.open(io.BytesIO(image))
    image_arr = np.array(imagePIL)
    image_arr = cv2.resize(image_arr, (640,480), interpolation=cv2.INTER_LINEAR)
-   if captured_image:
-      image_arr = image_arr[:,:,::-1]#cv2.flip(image_arr,1)
+   # if captured_image:
+   #    image_arr = image_arr[:,:,::-1]#cv2.flip(image_arr,1)
    # import matplotlib.pyplot as plt
    # plt.imshow(image_arr)
    # plt.show()
