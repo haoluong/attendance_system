@@ -102,7 +102,7 @@ class Home extends Component {
         };
         return (
             <Form className="segment centered" >
-                <Header />
+                <Header/>
                 <Table>
                     <Table.Header>
                         <Table.HeaderCell style={{ textAlign: 'center', fontSize: '30px', backgroundColor: 'CornflowerBlue' }}>HỆ THỐNG ĐIỂM DANH</Table.HeaderCell>
