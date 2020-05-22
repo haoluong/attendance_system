@@ -120,8 +120,13 @@ def add_stdinfo():
    new_student["std_room"] = std_room
    new_student["avatar"] = avatar
    start_new_thread(sign_student_web, (images, std_id))
-   new_stdList = student_info.insert_one(new_student)
-   return jsonify({"status": True})
+   print(std_id)
+   print(id_results)
+   if id_results is not None:
+      return jsonify({"status": False})
+   else:
+      new_stdList = student_info.insert_one(new_student)
+      return jsonify({"status": True})
 
 @app.route("/avatar", methods=["GET"])
 @cross_origin()
