@@ -11,7 +11,7 @@ from modules.utils import (set_memory_growth, load_yaml, draw_bbox_landm,
 class RetinaFace():
     def __init__(self, cfg_path):
         self.model = self.__create_model(cfg_path)
-        self.aligner = FaceAligner()
+        self.aligner = FaceAligner(128)
 
     def __create_model(self, cfg_path):
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -57,7 +57,7 @@ class RetinaFace():
         frame_height, frame_width,_ = frame.shape
         outputs = self.__detect_faces(frame)
         b_boxes = []
-        results = np.empty((0,160,160,3))
+        results = np.empty((0,128,128,3))
         for ann in outputs:
             b_box = max(int(ann[0] * frame_width),0), max(int(ann[1] * frame_height),0), \
                     min(int(ann[2] * frame_width), frame_width), min(int(ann[3] * frame_height), frame_height)
