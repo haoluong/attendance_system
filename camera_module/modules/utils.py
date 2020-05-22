@@ -107,7 +107,7 @@ def draw_anchor(img, prior, img_height, img_width):
 #   Utilize function                                                          #
 ###############################################################################
 def preprocess_input(img):
-    return img/255
+    return img[:,8:-8,8:-8,:]/255
 
 def l2_norm(x, axis=1):
     """l2 norm"""
