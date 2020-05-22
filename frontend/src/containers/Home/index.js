@@ -51,6 +51,9 @@ class Home extends Component {
             console.log(error)
         });
     };
+    componentWillUnmount() {
+        clearInterval(this.interval);
+      }
     onChange = (event) => {
         event.preventDefault();
         let link_created = event.target.files[0] ? URL.createObjectURL(event.target.files[0]) : ''

@@ -14,6 +14,7 @@ class Rediser():
 
     def init_db(self):
         embeds = np.load(self.settings.ANCHOR_PATH)["arr_0"]
+        embeds /= np.linalg.norm(embeds, axis=-1)[:, np.newaxis]
         labels = np.load(self.settings.LABEL_PATH)["arr_0"]
         self.add_embeds(embeds, labels)
 
