@@ -36,16 +36,17 @@ class Home extends Component {
             { headers: { 'content-type': 'multipart/form-data' } }
         ).then((res) => {
             let prediction = res.data
-                    this.setState({
-                        student:{
-                            std_name: prediction.std_name,
-                            std_id: prediction.std_id,
-                            std_room: prediction.std_room,
-                            avatar: prediction.avatar === 'bk1.png' ? 'bk1.png':'data:image/jpeg;base64,' + prediction.avatar
-                        },
-                        imgHidden: true,
-                        camHidden: false
-                    })
+            this.setState({
+                student:{
+                    std_name: prediction.std_name,
+                    std_id: prediction.std_id,
+                    std_room: prediction.std_room,
+                    avatar: prediction.avatar === 'bk1.png' ? 'bk1.png':'data:image/jpeg;base64,' + prediction.avatar
+                },
+                imgHidden: true,
+                camHidden: false
+            })
+            this.interval.stop().start()
         }).catch((error) => {
             console.log(error)
         });
@@ -56,9 +57,9 @@ class Home extends Component {
         this.setState({
             image_link:link_created,
             imageCaptured: event.target.files[0],
-            camHidden: true,
-            imgHidden: false,
-            btnDisable: false
+            camHidden: link_created === '' ? false: true,
+            imgHidden: link_created === '' ? true: false,
+            btnDisable: link_created === '' ? true: false
         });
     }
 
@@ -86,7 +87,7 @@ class Home extends Component {
             }).catch((error) => {
                 console.log(error)
             });
-        }, 10000);
+        }, 3000);
     }
 
 
@@ -113,25 +114,22 @@ class Home extends Component {
                                 ref={this.setRef}
                                 screenshotFormat="image/jpeg"
                                 videoConstraints={videoConstraints} hidden={this.state.camHidden} />
-                            <Image src={this.state.image_link} hidden={this.state.imgHidden}/>
+                            <Image src={this.state.image_link} hidden={this.state.imgHidden} size='large' centered/>
                         </Grid.Column>
-                        <Grid.Column width={8} className="noPadding">
-                            <Image src={this.state.student.avatar} wrapped />
-                        {/* </Grid.Column>
-                        <Grid.Column width={4} className="noPadding"> */}
-                            <Modal.Description>
-                                <h4 >Họ và tên:{this.state.student.std_name}</h4>
-                                <h4>MSSV:{this.state.student.std_id}</h4>
-                                <h4>Phòng:{this.state.student.std_room}</h4>
+                        <Grid.Column width={8}   >
+                            <Image src={this.state.student.avatar} size='medium'centered/>
+                            <Modal.Description style={{marginTop:'2.5em', marginLeft:'15em'}} >
+                                <h4 >Họ và tên: {this.state.student.std_name}</h4>
+                                <h4>MSSV: {this.state.student.std_id}</h4>
+                                <h4>Phòng: {this.state.student.std_room}</h4>
                             </Modal.Description>
                         </Grid.Column>
                     </Grid.Row>
-                    <Grid.Row centered columns={3}>
-                        <Grid.Column width={10}>
+                    <Grid.Row columns={2} textAlign='center'>
+                        <Grid.Column width={8}  >
                             <Button as="label" htmlFor="file" type="button">Chọn hình ảnh</Button>
                                 <input type="file" id="file" hidden onChange={this.onChange} />
                             <Button primary onClick={this.recog_image} disabled={this.state.btnDisable}>Nhận dạng ảnh</Button>
-                            
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

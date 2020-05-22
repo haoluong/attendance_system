@@ -159,16 +159,21 @@ def attend():
    # classification
    # import pdb; pdb.set_trace()
    image = request.form.get("image", '')
+   captured_image = True
    if image == '':
+      captured_image = False
       image = request.files["image"].read()
-      imagePIL = Image.open(io.BytesIO(image))
    else:
       image = image[22:]  #ignore 'data:image/jpeg;base64'
-      decoded_image = base64.b64decode(str(image))
-      imagePIL = Image.open(io.BytesIO(decoded_image))
+      image = base64.b64decode(str(image))
+   imagePIL = Image.open(io.BytesIO(image))
    image_arr = np.array(imagePIL)
    image_arr = cv2.resize(image_arr, (640,480), interpolation=cv2.INTER_LINEAR)
-   image_arr = image_arr[:,:,::-1]#cv2.flip(image_arr,1)
+   if captured_image:
+      image_arr = image_arr[:,:,::-1]#cv2.flip(image_arr,1)
+   # import matplotlib.pyplot as plt
+   # plt.imshow(image_arr)
+   # plt.show()
    k = str(uuid.uuid4())
    decoded_image = base64_encode_image(image_arr.astype(np.float32))
    d = {"id": k, "image": decoded_image}
@@ -189,11 +194,10 @@ def attend():
          print("RESULTS", output["label"])
          if output["label"] != 'unknown':
             std = student_info.find_one({"std_id":output["label"]})
-            data["std_id"] = std["std_id"]
-            data["std_name"] = std["std_name"]
-            data["std_room"] = std["std_room"]
-            # data["avatar"] = 'bk1.png'  
-            data["avatar"] = base64.encodestring(std["avatar"])
+            data["std_id"] = output["label"]
+            data["std_name"] = std["std_name"] if std is not None else "not filled"
+            data["std_room"] = std["std_room"] if std is not None else "not filled"
+            data["avatar"] = base64.encodestring(std["avatar"]) if std is not None else "bk1.png"
          else:
             data["std_id"] = "unknown"
             data["std_name"] = "unknown"
