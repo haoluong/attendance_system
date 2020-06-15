@@ -53,7 +53,10 @@ class StudentList extends Component {
                 number_of_rows: 5
             },
             enableInput: true,
-            btnHidden: true
+            btnHidden: true,
+            inputName: '', 
+            inputID: '',
+            inputRoom:''
         }
     }
 
@@ -230,8 +233,22 @@ class StudentList extends Component {
     btnUpdate = (event) => {
         this.setState({ enableInput: false, btnHidden: false });
     }
-    editInfo = (event) => {
-        this.state.selectedStudent.std_name = ""
+    editName = (event) => {
+        this.setState({
+            inputName: event.target.value
+        });
+    }
+
+    editID = (event) => {
+        this.setState({
+            inputID: event.target.value
+        });
+    }
+
+    editRoom = (event) => {
+        this.setState({
+            inputRoom: event.target.value
+        });
     }
 
     componentDidMount() {
@@ -246,18 +263,37 @@ class StudentList extends Component {
                     <Modal.Header>Lịch sử hoạt động
                     <Button icon='edit' onClick={this.btnUpdate} floated='right'></Button>
                     </Modal.Header>
-                    <Modal.Content image>
+                    <Grid>
+                        <Grid.Row style={{marginTop:'1.5em'}}>
+                            <Grid.Column width={6} >
+                                <Modal.Content image>
+                                    <Image width="260" height="260" wrapped src={this.state.selectedStudent.avatar} />
+                                </Modal.Content>
+                            </Grid.Column>
+                            <Grid.Column width={10} >
+                                <h4 >Họ và tên:</h4><Input disabled={this.state.enableInput} placeholder={this.state.selectedStudent.std_name} type="text" onChange={this.editName} value={this.state.inputValue}/>
+                                <h4>MSSV:</h4><Input disabled={this.state.enableInput} placeholder={this.state.selectedStudent.std_id} type="text" onChange={this.editID} value={this.state.inputValue}/>
+                                <h4>Phòng: </h4><Input disabled={this.state.enableInput} placeholder={this.state.selectedStudent.std_room} type="text" onChange={this.editRoom} value={this.state.inputValue}/>
+                            </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row textAlign='right'>
+                                <Grid.Column>
+                                    <Button color='red' inverted basic={this.state.btnHidden} floated='right'><Icon name='remove' onClick={this.btnOK} /> No</Button>
+                                    <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark' /> Yes</Button>
+                                </Grid.Column>
+                            
+                        </Grid.Row>
+                    </Grid>
+                    {/* <Modal.Content image>
                         <Image width="260" height="260" wrapped src={this.state.selectedStudent.avatar} />
                         <Modal.Description>
                             <h4 >Họ và tên:</h4><Input disabled={this.state.enableInput} onChange={this.editInfo} type="text">{this.state.selectedStudent.std_name}</Input>
                             <h4>MSSV:</h4><Input disabled={this.state.enableInput}>{this.state.selectedStudent.std_id}</Input>
                             <h4>Phòng: </h4><Input disabled={this.state.enableInput}>{this.state.selectedStudent.std_room}</Input>
-                            <Button.Group  floated='right' >
-                            {/* <Button color='red' inverted basic={this.state.btnHidden} floated='right'><Icon name='remove'/> No</Button>
-                            <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark'/> Yes</Button> */}
-                            </Button.Group>
                         </Modal.Description>
-                    </Modal.Content>
+                        <Button color='red' inverted basic={this.state.btnHidden} floated='right'><Icon name='remove' /> No</Button>
+                        <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark' /> Yes</Button>
+                    </Modal.Content> */}
                     <Table celled>
                         <Table.Header>
                             <Table.Row>
