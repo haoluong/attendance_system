@@ -5,13 +5,6 @@ import Footer from "../../components/Footer/footer"
 import { Form, Modal, Button, Image, Input, Grid, Table } from 'semantic-ui-react'
 import Axios from 'axios';
 
-function buildFileSelector() {
-    const fileSelector = document.createElement('input');
-    fileSelector.setAttribute('type', 'file');
-    fileSelector.setAttribute('multiple', 'multiple');
-    // fileSelector.setAttribute('value', source);
-    return fileSelector;
-}
 const SERVER = '127.0.0.1:9999'
 class Home extends Component {
     constructor(props) {
@@ -27,7 +20,7 @@ class Home extends Component {
             imageCaptured: '',
             camHidden: false,
             imgHidden: true, 
-            source: ''
+            btnDisable: true
         }
     }
     setRef = webcam => {
@@ -68,13 +61,13 @@ class Home extends Component {
             image_link:link_created,
             imageCaptured: event.target.files[0],
             camHidden: link_created === '' ? false: true,
-            imgHidden: link_created === '' ? true: false
+            imgHidden: link_created === '' ? true: false,
+            btnDisable: link_created === '' ? true: false
         });
     }
 
 
     componentDidMount() {
-        this.fileSelector = buildFileSelector();
         this.interval = setInterval(() => {
             const imageSrc = this.webcam.getScreenshot();
             const formData = new FormData();
@@ -109,7 +102,7 @@ class Home extends Component {
         };
         return (
             <Form className="segment centered" >
-                <Header />
+                <Header/>
                 <Table>
                     <Table.Header>
                         <Table.HeaderCell style={{ textAlign: 'center', fontSize: '30px', backgroundColor: 'CornflowerBlue' }}>HỆ THỐNG ĐIỂM DANH</Table.HeaderCell>
@@ -124,27 +117,22 @@ class Home extends Component {
                                 ref={this.setRef}
                                 screenshotFormat="image/jpeg"
                                 videoConstraints={videoConstraints} hidden={this.state.camHidden} />
-                            <Image src={this.state.image_link} hidden={this.state.imgHidden}/>
+                            <Image src={this.state.image_link} hidden={this.state.imgHidden} size='large' centered/>
                         </Grid.Column>
-                        <Grid.Column width={4} className="noPadding">
-                            <Image src={this.state.student.avatar} wrapped />
-                        </Grid.Column>
-                        <Grid.Column width={4} className="noPadding">
-                            <Modal.Description>
+                        <Grid.Column width={8}   >
+                            <Image src={this.state.student.avatar} size='medium'centered/>
+                            <Modal.Description style={{marginTop:'2.5em', marginLeft:'15em'}} >
                                 <h4 >Họ và tên: {this.state.student.std_name}</h4>
                                 <h4>MSSV: {this.state.student.std_id}</h4>
                                 <h4>Phòng: {this.state.student.std_room}</h4>
                             </Modal.Description>
                         </Grid.Column>
                     </Grid.Row>
-                    <Grid.Row centered columns={3}>
-                        <Grid.Column width={10}>
-                            <Button as="label" htmlFor="file" type="button">
-                                    Chọn hình ảnh
-                                </Button>
+                    <Grid.Row columns={2} textAlign='center'>
+                        <Grid.Column width={8}  >
+                            <Button as="label" htmlFor="file" type="button">Chọn hình ảnh</Button>
                                 <input type="file" id="file" hidden onChange={this.onChange} />
-                            <Button primary onClick={this.recog_image}>Nhận dạng ảnh</Button>
-                            
+                            <Button primary onClick={this.recog_image} disabled={this.state.btnDisable}>Nhận dạng ảnh</Button>
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
