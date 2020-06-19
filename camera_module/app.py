@@ -102,6 +102,11 @@ def get_studentList():
       data = data[number_of_rows*(page-1):end]
    return jsonify({"data": data, "total": total})
 
+# def edit_info():
+#    id_edt = request.form['std_id']
+#    name_edt = request.form['std_name']
+#    room_edt = request.form['std_room']
+
 def read_img_buffer(buffer):
    imagePIL = Image.open(io.BytesIO(buffer))
    image_arr = np.array(imagePIL)
@@ -114,6 +119,8 @@ def add_stdinfo():
    std_name = request.form['std_name']
    std_room = request.form['std_room']
    avatar = request.files["avatar"].read()
+   id_query = {'std_id': std_id}
+   id_results = student_info.find_one(id_query) 
    num_image = int(request.form['num_image'])
    images = [read_img_buffer(request.files["image"+str(i)].read()) for i in range(num_image)]
    new_student = {}
@@ -122,12 +129,15 @@ def add_stdinfo():
    new_student["std_room"] = std_room
    new_student["avatar"] = avatar
    k = "sign_"+std_id
-   for img in images:
-      encoded_image = base64_encode_image(img.astype(np.float32))
-      d = {"id": k, "image": encoded_image}
-      redis_db.rpush(settings.IMAGE_QUEUE, json.dumps(d))
-   new_stdList = student_info.insert_one(new_student)
-   return jsonify({"status": True})
+   if id_results is not None:
+      return jsonify({"status": False})
+   else:
+      for img in images:
+         encoded_image = base64_encode_image(img.astype(np.float32))
+         d = {"id": k, "image": encoded_image}
+         redis_db.rpush(settings.IMAGE_QUEUE, json.dumps(d))
+      new_stdList = student_info.insert_one(new_student)
+      return jsonify({"status": True})
 
 @app.route("/avatar", methods=["GET"])
 @cross_origin()
