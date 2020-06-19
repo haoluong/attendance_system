@@ -95,7 +95,7 @@ class NewStudent extends Component {
                     />
                     <Form.Input
                         fluid
-                        label='Avatar'
+                        label='Hình đại diện'
                         type="file"
                         id="avatar"
                         name="avatar"

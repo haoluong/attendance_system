@@ -306,15 +306,15 @@ class StudentList extends Component {
                     </Modal.Header>
                     <Modal.Content image>
                         <Image width="260" height="260" wrapped src={this.state.selectedStudent.avatar} />
-                        <Modal.Deion>
+                        <Modal.Description>
                             <h4 >Họ và tên:</h4><Input disabled={this.state.enableInput} value={this.state.tempName} type="text" onChange={this.editName} />
                             <h4>MSSV:</h4><Input disabled={this.state.enableInput} value={this.state.tempId} type='text' onChange={this.editId} />
-                            <h4>Phòng: </h4><Input disabled={this.state.enableInput} value={this.state.tempRoom} type="text" onChange={this.editRoom} />
+                            <h4>Phòng: </h4><Input disabled={this.state.enableInput} value={this.state.tempRoom} type="text" onChange={this.editRoom}/>
                             <Button.Group floated='right' >
                                 <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark' onClick={this.btnOK} /> Yes</Button>
-                                <Button color='red' inverted basic={this.state.btnHidden} floated='right' onClick={this.btnCancel}><Icon name='remove' /> No</Button>
+                                <Button color='red' inverted basic={this.state.btnHidden} floated='right' onClick={this.btnCancel}><Icon name='remove'  /> No</Button>
                             </Button.Group>
-                        </Modal.Deion>
+                        </Modal.Description>
                     </Modal.Content>
                     <Table celled>
                         <Table.Header>

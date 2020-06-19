@@ -44,8 +44,9 @@ class Rediser():
 
     def add_embeds(self, embeds, labels):
         base64_embeds = [base64_encode_image(e) for e in embeds]
-        self.db.rpush(EMBED_QUEUE, *base64_embeds)
-        self.db.rpush(LABEL_QUEUE, *labels)
+        for i in range(len(base64_embeds)):
+            self.db.rpush(EMBED_QUEUE, base64_embeds[i])
+            self.db.rpush(LABEL_QUEUE, labels[i])
         self.__write_logs("INSERT", "{} embeds of {}".format(len(embeds), labels[0]))
         return self.update_reload_status(value=True)
     

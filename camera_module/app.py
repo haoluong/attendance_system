@@ -116,22 +116,22 @@ def read_img_buffer(buffer):
 @cross_origin()
 def add_stdinfo():
    std_id = request.form['std_id']
-   std_name = request.form['std_name']
-   std_room = request.form['std_room']
-   avatar = request.files["avatar"].read()
    id_query = {'std_id': std_id}
    id_results = student_info.find_one(id_query) 
-   num_image = int(request.form['num_image'])
-   images = [read_img_buffer(request.files["image"+str(i)].read()) for i in range(num_image)]
-   new_student = {}
-   new_student["std_id"] = std_id
-   new_student["std_name"] = std_name
-   new_student["std_room"] = std_room
-   new_student["avatar"] = avatar
-   k = "sign_"+std_id
    if id_results is not None:
       return jsonify({"status": False})
    else:
+      std_name = request.form['std_name']
+      std_room = request.form['std_room']
+      avatar = request.files["avatar"].read()
+      num_image = int(request.form['num_image'])
+      images = [read_img_buffer(request.files["image"+str(i)].read()) for i in range(num_image)]
+      new_student = {}
+      new_student["std_id"] = std_id
+      new_student["std_name"] = std_name
+      new_student["std_room"] = std_room
+      new_student["avatar"] = avatar
+      k = "sign_"+std_id
       for img in images:
          encoded_image = base64_encode_image(img.astype(np.float32))
          d = {"id": k, "image": encoded_image}
@@ -139,6 +139,7 @@ def add_stdinfo():
       new_stdList = student_info.insert_one(new_student)
       return jsonify({"status": True})
 
+  
 @app.route("/avatar", methods=["GET"])
 @cross_origin()
 def get_avatar():
