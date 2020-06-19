@@ -53,7 +53,10 @@ class StudentList extends Component {
                 number_of_rows: 5
             },
             enableInput: true,
-            btnHidden: true
+            btnHidden: true,
+            tempName: '',
+            tempId: '',
+            tempRoom: ''
         }
     }
 
@@ -153,7 +156,10 @@ class StudentList extends Component {
                 // console.log(student_clone.avatar)
                 this.setState({
                     openModal: true,
-                    selectedStudent: student_clone
+                    selectedStudent: student_clone,
+                    tempName: student_clone.std_name,
+                    tempId: student_clone.std_id,
+                    tempRoom: student_clone.std_room
                 })
             }).catch((error) => {
                 console.log("get avatar fail " + error)
@@ -230,8 +236,60 @@ class StudentList extends Component {
     btnUpdate = (event) => {
         this.setState({ enableInput: false, btnHidden: false });
     }
-    editInfo = (event) => {
-        this.state.selectedStudent.std_name = ""
+
+    editName = (event) => {
+        let input_value = event.target.value
+        if (input_value !== "" && input_value !== this.state.tempName) {
+            this.setState({
+                tempName: input_value
+            });
+        }
+    }
+    editId = (event) => {
+        let input_value = event.target.value
+        if (input_value !== "" && input_value !== this.state.tempId) {
+            this.setState({
+                tempId: input_value
+            });
+        }
+    }
+    editRoom = (event) => {
+        let input_value = event.target.value
+        if (input_value !== "" && input_value !== this.state.tempRoom) {
+            this.setState({
+                tempRoom: input_value
+            });
+        }
+    }
+    btnOK = (event) => {
+        event.preventDefault();
+
+        const tempStudent = {
+            newName: this.state.tempName,
+            newId: this.state.tempId,
+            newRoom: this.state.tempRoom
+        };
+        // Axios.post('http://127.0.0.1:9999/update_student', tempStudent)
+        //     .then((res) => {
+        //         if (res.data["success"]) {
+        //             History.push('/')
+        //         }
+        //         else {
+        //             console.log(false)
+        //         }
+        //     }).catch((error) => {
+        //         console.log(error)
+        //     });
+    }
+
+    btnCancel = (event) => {
+        this.setState({
+            tempName: this.state.selectedStudent.std_name,
+            tempId: this.state.selectedStudent.std_id,
+            tempRoom: this.state.selectedStudent.std_room,
+            enableInput: true,
+            btnHidden: true
+        })
     }
 
     componentDidMount() {
@@ -248,15 +306,15 @@ class StudentList extends Component {
                     </Modal.Header>
                     <Modal.Content image>
                         <Image width="260" height="260" wrapped src={this.state.selectedStudent.avatar} />
-                        <Modal.Description>
-                            <h4 >Họ và tên:</h4><Input disabled={this.state.enableInput} onChange={this.editInfo} type="text">{this.state.selectedStudent.std_name}</Input>
-                            <h4>MSSV:</h4><Input disabled={this.state.enableInput}>{this.state.selectedStudent.std_id}</Input>
-                            <h4>Phòng: </h4><Input disabled={this.state.enableInput}>{this.state.selectedStudent.std_room}</Input>
-                            <Button.Group  floated='right' >
-                            {/* <Button color='red' inverted basic={this.state.btnHidden} floated='right'><Icon name='remove'/> No</Button>
-                            <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark'/> Yes</Button> */}
+                        <Modal.Deion>
+                            <h4 >Họ và tên:</h4><Input disabled={this.state.enableInput} value={this.state.tempName} type="text" onChange={this.editName} />
+                            <h4>MSSV:</h4><Input disabled={this.state.enableInput} value={this.state.tempId} type='text' onChange={this.editId} />
+                            <h4>Phòng: </h4><Input disabled={this.state.enableInput} value={this.state.tempRoom} type="text" onChange={this.editRoom} />
+                            <Button.Group floated='right' >
+                                <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark' onClick={this.btnOK} /> Yes</Button>
+                                <Button color='red' inverted basic={this.state.btnHidden} floated='right' onClick={this.btnCancel}><Icon name='remove' /> No</Button>
                             </Button.Group>
-                        </Modal.Description>
+                        </Modal.Deion>
                     </Modal.Content>
                     <Table celled>
                         <Table.Header>
