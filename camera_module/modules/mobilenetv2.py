@@ -45,7 +45,6 @@ class MobileNetV2():
             func = np.vectorize(lambda x: np.exp(-x*50))
             prob = np.exp(-dis_[min_dis_idx]*50)/np.sum(func(filter_dis))
 
-            print(prob)
         # return labels[np.argmin(dis_)], np.amin(dis_)
         return predict_label, prob
 
