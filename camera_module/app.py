@@ -107,7 +107,12 @@ def get_studentList():
 #    name_edt = request.form['std_name']
 #    room_edt = request.form['std_room']
 
-def read_img_buffer(buffer):
+def read_img_buffer(buffer, is_captured=False):
+   if is_captured:
+      buffer = buffer[22:]  #ignore 'data:image/jpeg;base64'
+      buffer = base64.b64decode(str(buffer))
+   else:
+      buffer = buffer.read()
    imagePIL = Image.open(io.BytesIO(buffer))
    image_arr = np.array(imagePIL)
    return cv2.resize(image_arr, (640,480), interpolation=cv2.INTER_LINEAR)
@@ -123,9 +128,18 @@ def add_stdinfo():
    else:
       std_name = request.form['std_name']
       std_room = request.form['std_room']
-      avatar = request.form["avatar"].read()
+      avatar = request.form.get("avatar", '')
+      captured_image = True
+      if avatar == '':
+         captured_image = False
+         container = request.files
+         avatar = request.files["avatar"].read()
+      else:
+         avatar = avatar[22:]  #ignore 'data:image/jpeg;base64'
+         avatar = base64.b64decode(str(avatar))
+         container = request.form
       num_image = int(request.form['num_image'])
-      images = [read_img_buffer(request.files["image"+str(i)].read()) for i in range(num_image)]
+      images = [read_img_buffer(container["image"+str(i)], captured_image) for i in range(num_image)]
       new_student = {}
       new_student["std_id"] = std_id
       new_student["std_name"] = std_name
@@ -186,11 +200,6 @@ def attend():
    imagePIL = Image.open(io.BytesIO(image))
    image_arr = np.array(imagePIL)
    image_arr = cv2.resize(image_arr, (640,480), interpolation=cv2.INTER_LINEAR)
-   # if captured_image:
-   #    image_arr = image_arr[:,:,::-1]#cv2.flip(image_arr,1)
-   # import matplotlib.pyplot as plt
-   # plt.imshow(image_arr)
-   # plt.show()
    k = str(uuid.uuid4())
    decoded_image = base64_encode_image(image_arr.astype(np.float32))
    d = {"id": k, "image": decoded_image}

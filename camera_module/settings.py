@@ -20,6 +20,8 @@ IMAGE_DTYPE = "float32"
  
 # initialize constants used for server queuing
 IMAGE_QUEUE = "image_queue"
+EMBED_QUEUE = "base64_embeds"
+LABEL_QUEUE = "labels1"
 BATCH_SIZE = 32
 SERVER_SLEEP = 0.25
 CLIENT_SLEEP = 0.25

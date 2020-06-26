@@ -47,7 +47,6 @@ class NewStudent extends Component {
         formData.append('std_id', this.state.std_id)
         formData.append('std_name', this.state.std_name)
         formData.append('std_room', this.state.std_room)
-        console.log(formData)
         Axios.post('http://127.0.0.1:9999/newstudent', formData, { headers: { 'content-type': 'multipart/form-data' } })
             .then((res) => {
                 if (res.data.status === true) {
@@ -88,7 +87,6 @@ class NewStudent extends Component {
             avatar: link_created,
             images: [link_created]
         })
-        console.log(this.state.avatar)
     };
     btnAdd = (event) => {
         this.setState({

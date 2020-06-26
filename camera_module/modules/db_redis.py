@@ -4,8 +4,6 @@ import numpy as np
 import time
 from utils.helpers import base64_encode_image, base64_decode_image
 
-EMBED_QUEUE = "base64_embeds"
-LABEL_QUEUE = "labels"
 class Rediser():
     def __init__(self, settings):
         self.db = redis.StrictRedis(host=settings.REDIS_HOST,
@@ -35,18 +33,18 @@ class Rediser():
         return self.db.rpush(self.settings.IMAGE_QUEUE, json.dumps(d))
 
     def get_embeds(self):
-        embeds = self.db.lrange(EMBED_QUEUE,0,-1)
+        embeds = self.db.lrange(self.settings.EMBED_QUEUEUE,0,-1)
         embeds = [base64_decode_image(e, self.settings.IMAGE_DTYPE, (1, self.settings.EMBED_SIZE), byte_convert=False) for e in embeds]
         return np.vstack(tuple(embeds)) if len(embeds) > 0 else []
 
     def get_labels(self):
-        return np.array(self.db.lrange(LABEL_QUEUE,0,-1)).astype(str)
+        return np.array(self.db.lrange(self.settings.LABEL_QUEUEUE,0,-1)).astype(str)
 
     def add_embeds(self, embeds, labels):
         base64_embeds = [base64_encode_image(e) for e in embeds]
         for i in range(len(base64_embeds)):
-            self.db.rpush(EMBED_QUEUE, base64_embeds[i])
-            self.db.rpush(LABEL_QUEUE, labels[i])
+            self.db.rpush(self.settings.EMBED_QUEUEUE, base64_embeds[i])
+            self.db.rpush(self.settings.LABEL_QUEUEUE, labels[i])
         self.__write_logs("INSERT", "{} embeds of {}".format(len(embeds), labels[0]))
         return self.update_reload_status(value=True)
     
@@ -55,9 +53,9 @@ class Rediser():
         labels = self.get_labels()
         student_indexes = np.where(labels == student_id)[0]
         #delete student
-        [self.db.lset(EMBED_QUEUE, int(idx), "REMOVE") for idx in student_indexes]
-        embed_remove = self.db.lrem(EMBED_QUEUE, 0, "REMOVE")
-        label_remove = self.db.lrem(LABEL_QUEUE, 0, student_id)
+        [self.db.lset(self.settings.EMBED_QUEUEUE, int(idx), "REMOVE") for idx in student_indexes]
+        embed_remove = self.db.lrem(self.settings.EMBED_QUEUEUE, 0, "REMOVE")
+        label_remove = self.db.lrem(self.settings.LABEL_QUEUEUE, 0, student_id)
         if label_remove == embed_remove:
             self.__write_logs("REMOVE", "{} embeds from {}".format(embed_remove, student_id))
         else:
