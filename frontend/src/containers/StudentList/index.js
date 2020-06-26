@@ -263,12 +263,13 @@ class StudentList extends Component {
     }
     btnOK = (event) => {
         event.preventDefault();
-
-        const tempStudent = {
-            newName: this.state.tempName,
-            newId: this.state.tempId,
-            newRoom: this.state.tempRoom
-        };
+        this.setState({
+            tempName: this.state.selectedStudent.std_name,
+            tempId: this.state.selectedStudent.std_id,
+            tempRoom: this.state.selectedStudent.std_room,
+            enableInput: true,
+            btnHidden: true
+        })
         // Axios.post('http://127.0.0.1:9999/update_student', tempStudent)
         //     .then((res) => {
         //         if (res.data["success"]) {

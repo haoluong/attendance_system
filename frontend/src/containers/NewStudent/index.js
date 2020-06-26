@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
+import Webcam from "react-webcam";
 import Header from "../../components/Header/header";
-import { Form, Button, Segment, Modal } from 'semantic-ui-react';
+import { Form, Button, Segment, Modal, Image, Grid } from 'semantic-ui-react';
 import Axios from 'axios';
 
 
@@ -20,12 +21,20 @@ class NewStudent extends Component {
             std_id: '',
             std_name: '',
             std_room: '',
-            avatar: null,
-            images: null
+            avatar: '',
+            images: null,
+            imageCaptured: '',
+            openCam: false,
+            camHidden: false,
+            imgHidden: true,
+            image_link: ''
         }
         this.onChange = this.onChange.bind(this);
         this.onMultipleChange = this.onMultipleChange.bind(this);
     }
+    setRef = webcam => {
+        this.webcam = webcam;
+    };
 
     handleSubmit = event => {
         event.preventDefault();
@@ -39,13 +48,13 @@ class NewStudent extends Component {
         formData.append('std_name', this.state.std_name)
         formData.append('std_room', this.state.std_room)
         console.log(formData)
-        Axios.post('http://127.0.0.1:9999/newstudent', formData,{ headers: { 'content-type': 'multipart/form-data' } })
+        Axios.post('http://127.0.0.1:9999/newstudent', formData, { headers: { 'content-type': 'multipart/form-data' } })
             .then((res) => {
                 if (res.data.status === true) {
-                    this.setState({ openModalSuccess: true})
+                    this.setState({ openModalSuccess: true })
                 }
                 else {
-                    this.setState({openModalError: true})
+                    this.setState({ openModalError: true })
                 }
             }).catch((error) => {
                 console.log(error)
@@ -60,18 +69,39 @@ class NewStudent extends Component {
     onChange(e) {
         let link_created = e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : ''
         this.setState({
-          avatar:e.target.files[0],
+            avatar: e.target.files[0],
         });
     }
 
     onMultipleChange(e) {
         let link_created = e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : ''
         this.setState({
-          images:e.target.files,
+            images: e.target.files,
         });
     }
 
+    btnCapture = (event) => {
+        event.preventDefault();
+        let link_created = this.webcam.getScreenshot();
+        this.setState({
+            image_link: link_created,
+            avatar: link_created,
+            images: [link_created]
+        })
+        console.log(this.state.avatar)
+    };
+    btnAdd = (event) => {
+        this.setState({
+            openCam: true
+        })
+    }
+
     render() {
+        const videoConstraints = {
+            width: 640,
+            height: 480,
+            facingMode: "user"
+        };
         return (
             <Form size='large'>
                 <Header />
@@ -99,7 +129,7 @@ class NewStudent extends Component {
                         type="file"
                         id="avatar"
                         name="avatar"
-                        onChange= {this.onChange}/>
+                        onChange={this.onChange} />
                     <Form.Input
                         fluid
                         label='Danh sách ảnh định danh'
@@ -107,7 +137,29 @@ class NewStudent extends Component {
                         id="images"
                         name="images"
                         multiple="multiple"
-                        onChange= {this.onMultipleChange}/>
+                        onChange={this.onMultipleChange} />
+                    <Modal trigger={<Button>Thêm ảnh</Button>} basic size='small'>
+                        <Grid>
+                            <Grid.Row stretched >
+                                <Grid.Column width={7}>
+                                    <Webcam
+                                        mirrored={true}
+                                        audio={false}
+                                        ref={this.setRef}
+                                        screenshotFormat="image/jpeg"
+                                        videoConstraints={videoConstraints} />
+                                </Grid.Column>
+                                <Grid.Column width={8}>
+                                    <Image src={this.state.image_link} size='large' />
+                                </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row columns={2} textAlign='center'>
+                                <Grid.Column width={8}>
+                                    <Button onClick={this.btnCapture}>Chụp màn hình</Button>
+                                </Grid.Column>
+                            </Grid.Row>
+                        </Grid>
+                    </Modal>
                     {/* <Form.Checkbox
                     label='I agree to the Terms and Conditions'
                     error={{

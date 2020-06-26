@@ -123,7 +123,7 @@ def add_stdinfo():
    else:
       std_name = request.form['std_name']
       std_room = request.form['std_room']
-      avatar = request.files["avatar"].read()
+      avatar = request.form["avatar"].read()
       num_image = int(request.form['num_image'])
       images = [read_img_buffer(request.files["image"+str(i)].read()) for i in range(num_image)]
       new_student = {}
