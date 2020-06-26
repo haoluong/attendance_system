@@ -102,6 +102,11 @@ def get_studentList():
       data = data[number_of_rows*(page-1):end]
    return jsonify({"data": data, "total": total})
 
+# def edit_info():
+#    id_edt = request.form['std_id']
+#    name_edt = request.form['std_name']
+#    room_edt = request.form['std_room']
+
 def read_img_buffer(buffer):
    imagePIL = Image.open(io.BytesIO(buffer))
    image_arr = np.array(imagePIL)
