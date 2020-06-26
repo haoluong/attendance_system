@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import Webcam from "react-webcam";
+import { transitions, positions, Provider as AlertProvider } from 'react-alert'
 import Header from "../../components/Header/header";
-import { Form, Button, Segment, Modal, Image, Grid } from 'semantic-ui-react';
+import { Form, Button, Segment, Modal, Image, Grid, Icon } from 'semantic-ui-react';
 import Axios from 'axios';
 
 
@@ -13,6 +14,9 @@ const divStyle = {
 const header = {
     textAlign: 'center'
 }
+let icon = {
+    display: 'none'
+}
 
 class NewStudent extends Component {
     constructor(props) {
@@ -22,12 +26,14 @@ class NewStudent extends Component {
             std_name: '',
             std_room: '',
             avatar: '',
-            images: null,
+            images: [],
             imageCaptured: '',
             openCam: false,
             camHidden: false,
             imgHidden: true,
-            image_link: ''
+            image_link: '',
+            inputHidden: true,
+            colorActive: ''
         }
         this.onChange = this.onChange.bind(this);
         this.onMultipleChange = this.onMultipleChange.bind(this);
@@ -39,25 +45,33 @@ class NewStudent extends Component {
     handleSubmit = event => {
         event.preventDefault();
         const formData = new FormData();
-        for (var x = 0; x < this.state.images.length; x++) {
-            formData.append("image" + x, this.state.images[x]);
+        if (this.state.images.length === 0 || this.state.avatar.length === '') {
+            this.setState({
+                colorActive: 'red'
+            })
+            icon={display:'inline-block'}
         }
-        formData.append('avatar', this.state.avatar)
-        formData.append('num_image', this.state.images.length)
-        formData.append('std_id', this.state.std_id)
-        formData.append('std_name', this.state.std_name)
-        formData.append('std_room', this.state.std_room)
-        Axios.post('http://127.0.0.1:9999/newstudent', formData, { headers: { 'content-type': 'multipart/form-data' } })
-            .then((res) => {
-                if (res.data.status === true) {
-                    this.setState({ openModalSuccess: true })
-                }
-                else {
-                    this.setState({ openModalError: true })
-                }
-            }).catch((error) => {
-                console.log(error)
-            });
+        else {
+            for (var x = 0; x < this.state.images.length; x++) {
+                formData.append("image" + x, this.state.images[x]);
+            }
+            formData.append('avatar', this.state.avatar)
+            formData.append('num_image', this.state.images.length)
+            formData.append('std_id', this.state.std_id)
+            formData.append('std_name', this.state.std_name)
+            formData.append('std_room', this.state.std_room)
+            Axios.post('http://127.0.0.1:9999/newstudent', formData, { headers: { 'content-type': 'multipart/form-data' } })
+                .then((res) => {
+                    if (res.data.status === true) {
+                        this.setState({ openModalSuccess: true })
+                    }
+                    else {
+                        this.setState({ openModalError: true })
+                    }
+                }).catch((error) => {
+                    console.log(error)
+                });
+        }
     }
 
     closeModal = () => {
@@ -85,7 +99,8 @@ class NewStudent extends Component {
         this.setState({
             image_link: link_created,
             avatar: link_created,
-            images: [link_created]
+            images: [link_created],
+            inputHidden: false
         })
     };
     btnAdd = (event) => {
@@ -121,21 +136,23 @@ class NewStudent extends Component {
                         label='Phòng'
                         onChange={(event) => this.setState({ std_room: event.target.value })}
                     />
+                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon}/>Hình đại diện</h5>
                     <Form.Input
                         fluid
-                        label='Hình đại diện'
                         type="file"
                         id="avatar"
                         name="avatar"
                         onChange={this.onChange} />
+                    <h5 type="text" id="file" hidden={this.state.inputHidden}>Đã chọn ảnh </h5>
+                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon}/>Danh sách ảnh định danh</h5>
                     <Form.Input
                         fluid
-                        label='Danh sách ảnh định danh'
                         type="file"
                         id="images"
                         name="images"
                         multiple="multiple"
                         onChange={this.onMultipleChange} />
+                    <h5 type="text" id="file" hidden={this.state.inputHidden}>Đã chọn ảnh </h5>
                     <Modal trigger={<Button>Thêm ảnh</Button>} basic size='small'>
                         <Grid>
                             <Grid.Row stretched >
