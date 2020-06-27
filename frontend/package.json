@@ -12,6 +12,7 @@
     "jQuery": "^1.7.4",
     "jquery": ">=3.5.0",
     "react": "^16.13.1",
+    "react-alert": "^7.0.1",
     "react-dom": "^16.13.1",
     "react-images-upload": "^1.2.8",
     "react-router-dom": "^5.1.2",

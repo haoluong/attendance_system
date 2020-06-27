@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Webcam from "react-webcam";
 import { transitions, positions, Provider as AlertProvider } from 'react-alert'
 import Header from "../../components/Header/header";
-import { Form, Button, Segment, Modal, Image, Grid, Icon } from 'semantic-ui-react';
+import { Form, Button, Segment, Modal, Image, Grid, Icon, Label } from 'semantic-ui-react';
 import Axios from 'axios';
 
 
@@ -15,6 +15,7 @@ const header = {
     textAlign: 'center'
 }
 let icon = {
+    color: 'red',
     display: 'none'
 }
 
@@ -49,7 +50,7 @@ class NewStudent extends Component {
             this.setState({
                 colorActive: 'red'
             })
-            icon={display:'inline-block'}
+            icon={display:'inline',color: 'red', right: "0%"}
         }
         else {
             for (var x = 0; x < this.state.images.length; x++) {
@@ -121,30 +122,33 @@ class NewStudent extends Component {
                 <Segment style={divStyle}>
                     <h1 style={header}>Thêm sinh viên</h1>
                     <Form.Input
+                        required
                         fluid
                         label='Họ và tên'
                         id='form-input-first-name'
                         onChange={(event) => this.setState({ std_name: event.target.value })}
                     />
                     <Form.Input
+                        required
                         fluid
                         label='Mã số sinh viên'
                         onChange={(event) => this.setState({ std_id: event.target.value })}
                     />
                     <Form.Input
+                        required
                         fluid
                         label='Phòng'
                         onChange={(event) => this.setState({ std_room: event.target.value })}
                     />
-                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon}/>Hình đại diện</h5>
+                    <h5>Hình đại diện: <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon}>Thiếu thông tin</h5></h5>
                     <Form.Input
                         fluid
                         type="file"
                         id="avatar"
                         name="avatar"
                         onChange={this.onChange} />
-                    <h5 type="text" id="file" hidden={this.state.inputHidden}>Đã chọn ảnh </h5>
-                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon}/>Danh sách ảnh định danh</h5>
+                    <h5 type="text" id="file" hidden={this.state.inputHidden} style={{color:"green"}}>Đã chọn ảnh </h5>
+                    <h5>Danh sách ảnh định danh:  <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon}>Thiếu thông tin</h5></h5>
                     <Form.Input
                         fluid
                         type="file"
@@ -152,7 +156,7 @@ class NewStudent extends Component {
                         name="images"
                         multiple="multiple"
                         onChange={this.onMultipleChange} />
-                    <h5 type="text" id="file" hidden={this.state.inputHidden}>Đã chọn ảnh </h5>
+                    <h5 type="text" id="file" hidden={this.state.inputHidden} style={{color:"green"}}>Đã chọn ảnh </h5>
                     <Modal trigger={<Button>Thêm ảnh</Button>} basic size='small'>
                         <Grid>
                             <Grid.Row stretched >
