@@ -17,7 +17,7 @@ class DBStorage():
         self.history = self.client.history
     
     def save(self, student_stt):
-        status_collection = self.db.student_status  #lay bang users
+        status_collection = self.db.student_info  #lay bang users
         #update trang thai cua student
         query = {'std_id': student_stt.student_id}
         new_status = {
