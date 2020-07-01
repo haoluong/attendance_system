@@ -3,12 +3,7 @@ import Header from "../../components/Header/header";
 import { Table, Form, Pagination, Search, Grid, Menu, Modal, Image, Dropdown, Icon, Input, Button } from 'semantic-ui-react';
 import Axios from 'axios';
 import _ from 'lodash'
-import faker from 'faker'
 const initialState = { isLoading: false, results: [], value: '' }
-
-const source = _.times(5, () => ({
-    title: faker.company.companyName()
-}))
 
 const numofRow = [
     { key: 1, value: 1, text: '1' },
@@ -35,7 +30,7 @@ class StudentList extends Component {
             box: '',
             openModal: false,
             selectedStudent: {
-                avatar: 'https://react.semantic-ui.com/images/avatar/large/rachel.png',
+                avatar: '',
                 std_name: '',
                 std_id: '',
                 std_room: '',
@@ -73,8 +68,8 @@ class StudentList extends Component {
             + "&page=" + this.state.page + "&number_of_rows=" + this.state.number_of_rows
         Axios.get(url)
             .then((res) => {
-                const student = res.data.data;
-                const total_record = res.data.total;
+                let student = res.data.data;
+                let total_record = res.data.total;
                 this.setState({ isLoading: false, student, total_record });
             }).catch((error) => {
                 console.log(error)
@@ -84,18 +79,19 @@ class StudentList extends Component {
     handleSearchChange = (e, { value, box }) => {
         let value_clone = this.state.value
         value_clone[box] = value
-        if (value === "") {
-            window.location.reload();
-        }
+        // if (value === "") {
+        //     window.location.reload();
+        // }
         this.setState({
             isLoading: true,
             value: value_clone, box
         })
         let url = "http://127.0.0.1:9999/studentlist?std_name=" + value_clone.std_name
             + "&std_id=" + value_clone.std_id + "&std_room=" + value_clone.std_room
+            + "&page=" + this.state.page + "&number_of_rows=" + this.state.number_of_rows
         Axios.get(url)
             .then((res) => {
-                const searchList = res.data.data;
+                let searchList = res.data.data;
                 this.setState({ isLoading: false, searchList });
             }).catch((error) => {
                 console.log(error)
@@ -118,12 +114,12 @@ class StudentList extends Component {
     }
 
     query_history = (obj) => {
-        const { std_id, page, number_of_rows } = obj
+        let { std_id, page, number_of_rows } = obj
         let url = "http://127.0.0.1:9999/stdhistory?std_id=" + std_id
             + "&page=" + page + "&number_of_rows=" + number_of_rows
         Axios.get(url)
             .then((res) => {
-                const modal = {
+                let modal = {
                     std_id: std_id,
                     history: res.data.data,
                     total_record: res.data.total,
@@ -137,7 +133,7 @@ class StudentList extends Component {
     }
 
     onHistoryPageChange = (event, data) => {
-        const modal = this.state.modal
+        let modal = this.state.modal
         modal.page = data.activePage
         this.query_history(modal)
     }
@@ -188,7 +184,7 @@ class StudentList extends Component {
     }
 
     handleSort = (clickedColumn) => () => {
-        const state_clone = this.state
+        let state_clone = this.state
         if (state_clone.column !== clickedColumn) {
             state_clone.column = clickedColumn
             state_clone.direction = 'ascending'
@@ -203,13 +199,13 @@ class StudentList extends Component {
     }
 
     onPageChange = (event, data) => {
-        const state_clone = this.state
+        let state_clone = this.state
         state_clone.page = data.activePage
         this.query_student(state_clone)
     }
 
     query_student = (obj) => {
-        const { value, column, direction, page, number_of_rows } = obj
+        let { value, column, direction, page, number_of_rows } = obj
         let url = "http://127.0.0.1:9999/studentlist?std_name=" + value.std_name
             + "&std_id=" + value.std_id + "&std_room=" + value.std_room
             + "&page=" + page + "&number_of_rows=" + number_of_rows
@@ -218,8 +214,8 @@ class StudentList extends Component {
         }
         Axios.get(url)
             .then((res) => {
-                const student = res.data.data;
-                const total_record = res.data.total
+                let student = res.data.data;
+                let total_record = res.data.total
                 this.setState({ student, value, column, direction, page, number_of_rows, total_record });
             }).catch((error) => {
                 console.log(error)
@@ -227,7 +223,7 @@ class StudentList extends Component {
     }
 
     onResultSelect = (event, data) => {
-        const state_clone = this.state
+        let state_clone = this.state
         state_clone.number_of_rows = data.value
         state_clone.page = 1
         this.query_student(state_clone)
@@ -298,7 +294,7 @@ class StudentList extends Component {
     }
 
     render() {
-        const { isLoading, value, results, column, direction } = this.state
+        let { isLoading, value, results, column, direction } = this.state
         return (
             <Form className="segment centered" >
                 <Modal open={this.state.openModal} onClose={this.closeModal} className="segment centered">
@@ -327,7 +323,7 @@ class StudentList extends Component {
 
                         <Table.Body>
                             {this.state.modal.history.map(record =>
-                                <Table.Row>
+                                <Table.Row key={record._id}>
                                     <Table.Cell>{record.inKTX ? "Trong KTX" : "Ngoài KTX"}</Table.Cell>
                                     <Table.Cell>{record.detected_at}</Table.Cell>
                                 </Table.Row>)}
@@ -406,9 +402,9 @@ class StudentList extends Component {
                     <Table.Header>
                         <Table.HeaderCell colSpan={5} style={{ textAlign: 'center', fontSize: '30px', backgroundColor: 'CornflowerBlue' }}>BẢNG ĐIỂM DANH SINH VIÊN</Table.HeaderCell>
                         <Table.Row>
-                            <Table.HeaderCell sorted={column === 'student.std_name' ? direction : null} onClick={this.handleSort("student.std_name")}>Họ và tên</Table.HeaderCell>
-                            <Table.HeaderCell sorted={column === 'student.std_id' ? direction : null} onClick={this.handleSort("student.std_id")}>MSSV</Table.HeaderCell>
-                            <Table.HeaderCell sorted={column === 'student.std_room' ? direction : null} onClick={this.handleSort("student.std_room")}>Phòng</Table.HeaderCell>
+                            <Table.HeaderCell sorted={column === 'std_name' ? direction : null} onClick={this.handleSort("std_name")}>Họ và tên</Table.HeaderCell>
+                            <Table.HeaderCell sorted={column === 'std_id' ? direction : null} onClick={this.handleSort("std_id")}>MSSV</Table.HeaderCell>
+                            <Table.HeaderCell sorted={column === 'std_room' ? direction : null} onClick={this.handleSort("std_room")}>Phòng</Table.HeaderCell>
                             <Table.HeaderCell sorted={column === 'inKTX' ? direction : null} onClick={this.handleSort("inKTX")}>Trạng thái</Table.HeaderCell>
                             <Table.HeaderCell sorted={column === 'detected_at' ? direction : null} onClick={this.handleSort("detected_at")}>Thời gian</Table.HeaderCell>
                         </Table.Row>

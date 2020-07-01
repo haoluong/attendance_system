@@ -55,7 +55,33 @@ def get_studentList():
    direction = request.args.get('direction')
    number_of_rows = request.args.get('number_of_rows')
    page = request.args.get('page')
-   and_expr = [{ '$eq': [ "$std_id",  "$$std_id" ] }]
+   # and_expr = [{ '$eq': [ "$std_id",  "$$std_id" ] }]
+   # if len(std_name) > 0:
+   #    and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_name",std_name] }, -1]})
+   # if len(std_id) > 0:
+   #    and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_id",std_id] }, -1]})
+   # if len(std_room) > 0:
+   #    and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_room",std_room] }, -1]})
+   # expr = [
+   #    {
+   #       '$lookup': 
+   #       {
+   #          'from': "student_info",
+   #          'let': { 'std_id': "$std_id", 'std_name': "$std_name", 'std_room': "$std_room"},
+   #          'as': "student",
+   #          'pipeline': [
+   #             { '$match':
+   #                { '$expr':
+   #                   { '$and':
+   #                      and_expr
+   #                   }
+   #                }
+   #             }
+   #          ],
+   #       }
+   #    }
+   # ]
+   and_expr = []
    if len(std_name) > 0:
       and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_name",std_name] }, -1]})
    if len(std_id) > 0:
@@ -63,37 +89,29 @@ def get_studentList():
    if len(std_room) > 0:
       and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_room",std_room] }, -1]})
    expr = [
-      {
-         '$lookup': 
-         {
-            'from': "student_info",
-            'let': { 'std_id': "$std_id", 'std_name': "$std_name", 'std_room': "$std_room"},
-            'as': "student",
-            'pipeline': [
-               { '$match':
-                  { '$expr':
-                     { '$and':
-                        and_expr
-                     }
-                  }
-               }
-            ],
+      {'$project':{"_id":0, "avatar": 0}},
+      { '$match':
+         { '$expr':
+            { '$and':
+               and_expr
+            }
          }
       }
    ]
    if direction is not None:
       expr.append({'$sort':{sort_column: 1 if direction == 'ascending' else -1}})
-   student_records = list(student_status.aggregate(expr))
-   data = []
-   for c in student_records:
-      if (len(c["student"]) > 0):
-         new_record = {}
-         new_record["std_id"] = c["student"][0]["std_id"]
-         new_record["std_name"] = c["student"][0]["std_name"]
-         new_record["std_room"] = c["student"][0]["std_room"]
-         new_record["detected_at"] = c["detected_at"]
-         new_record["inKTX"] = c["inKTX"]
-         data.append(new_record)
+   # import pdb; pdb.set_trace()
+   student_records = student_info.aggregate(expr)
+   data = list(student_records)
+   # for c in student_records:
+   #    if (len(c["student"]) > 0):
+   #       new_record = {}
+   #       new_record["std_id"] = c["student"][0]["std_id"]
+   #       new_record["std_name"] = c["student"][0]["std_name"]
+   #       new_record["std_room"] = c["student"][0]["std_room"]
+   #       new_record["detected_at"] = c["detected_at"]
+   #       new_record["inKTX"] = c["inKTX"]
+   #       data.append(new_record)
    total = len(data)
    if number_of_rows and page:
       number_of_rows = int(number_of_rows)

@@ -4,7 +4,12 @@ import { Link } from "react-router-dom";
 import History from '../History/history';
 
 class Header extends Component {
-    state = { activeItem: '' }
+    constructor(props) {
+        super(props);
+        this.state = {
+            activeItem: ''
+        }
+    }
 
     handleItemClick = (e, { name }) => {
         this.setState({ activeItem: name })
@@ -24,21 +29,21 @@ class Header extends Component {
                 </Menu.Item>
                 <Menu.Item
                     name=''
-                    active={activeItem === ''}
+                    active={this.state.activeItem === 'camera'}
                     content='Camera'
                     onClick={this.handleItemClick}
                 />
 
                 <Menu.Item
                     name='studentlist'
-                    active={activeItem === 'studentlist'}
+                    active={this.state.activeItem === 'studentlist'}
                     content='Danh sách sinh viên'
                     onClick={this.handleItemClick}
                 />
 
                 <Menu.Item
                     name='newstudent'
-                    active={activeItem === 'newstudent'}
+                    active={this.state.activeItem === 'newstudent'}
                     content='Thêm sinh viên'
                     onClick={this.handleItemClick}
                 />
