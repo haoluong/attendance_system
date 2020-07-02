@@ -21,7 +21,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 client = MongoClient("mongodb+srv://thesis:thesis123@cluster0-849yn.mongodb.net/test?retryWrites=true&w=majority")
 db = client.attendance_system
 user = db.users
-student_status = db.student_status
+# student_status = db.student_status
 student_info = db.student_info
 history = client.history
 redis_db = redis.StrictRedis(host=settings.REDIS_HOST,
@@ -163,6 +163,8 @@ def add_stdinfo():
       new_student["std_name"] = std_name
       new_student["std_room"] = std_room
       new_student["avatar"] = avatar
+      new_student["inKTX"] = True
+      new_student["detected_at"] = time.strftime('%Y-%m-%d %H:%M:%S')
       k = "sign_"+std_id
       for img in images:
          encoded_image = base64_encode_image(img.astype(np.float32))
