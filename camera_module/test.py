@@ -18,29 +18,29 @@ class Measure():
         return dis
     
     @staticmethod
-    def get_matrix_closet_idx(anchor, source):
+    def get_matrix_closet_idx(anchor, source, voter=10):
         dis_ = np.sqrt(np.sum(np.square(source - anchor),axis=1))
-        min_dis_idx = np.argmin(dis_ + np.eye(1,dis_.shape[0])*10)
+        min_dis_idx = dis_.argsort()[:voter] #np.argmin(dis_ + np.eye(1,dis_.shape[0])*10)
         return min_dis_idx
 
     @staticmethod
-    def get_closet(anchor, source, typ='matrix'):
+    def get_closet(anchor, source, typ='matrix', voter=10):
         if typ == 'matrix':
-            closest_idx = [Measure.get_matrix_closet_idx(a, source) for a in anchor]
+            closest_idx = [Measure.get_matrix_closet_idx(a, source, voter) for a in anchor]
+            print(np.array(closest_idx).shape)
         elif typ == 'kdtree':
             tree = KDTree(source)
-            closest_idx = [tree.query(a[np.newaxis,...], k=2, return_distance=False)[:,1] for a in anchor] #shape (anchor.shape[0],2)
-            # closest_idx = res[:,1]
+            closest_idx = [tree.query(a[np.newaxis,...], k=voter, return_distance=False)[0] for a in anchor] #shape (anchor.shape[0],2)
         elif typ == 'nn':
-            neigh = NearestNeighbors(n_neighbors=2, radius=0.4, algorithm='ball_tree')
+            neigh = NearestNeighbors(n_neighbors=voter, radius=0.4, algorithm='ball_tree')
             neigh.fit(source)
-            closest_idx = [neigh.kneighbors(a[np.newaxis,...],n_neighbors=2, return_distance=False)[:,1] for a in anchor]
+            closest_idx = [neigh.kneighbors(a[np.newaxis,...],n_neighbors=voter, return_distance=False)[0] for a in anchor]
         elif typ == 'lsh':
             params = get_default_parameters(source.shape[0], source.shape[1])
             lsh = LSHIndex(params)
             lsh.setup(source)
             query_obj = lsh.construct_query_object(num_probes=1000)
-            closest_idx = [query_obj.find_k_nearest_neighbors(an, k=2)[1] for an in anchor]
+            closest_idx = [query_obj.find_k_nearest_neighbors(an, k=voter) for an in anchor]
         return closest_idx
     
     @staticmethod
@@ -52,18 +52,23 @@ class Measure():
             total +=1
         return truth_count, total, truth_count/total
 
-    def eval(self, typ='matrix'):
+    def get_label(self, votes):
+        labels = [self.labels[i] for i in votes]
+        # import pdb; pdb.set_trace()
+        return max(set(labels), key = labels.count) 
+
+    def eval(self, typ='matrix', voter=10):
         start = time.time()
-        closest_idx = Measure.get_closet(self.embeds, self.embeds, typ=typ)
+        closest_idx = Measure.get_closet(self.embeds, self.embeds, typ=typ, voter=10)
         end = time.time() - start
         print("{} query {} times from {} takes {}s - {}s in average".format(typ, self.embeds.shape[0], self.embeds.shape[0], end, end/self.embeds.shape[0]))
-        predict_labels = [self.labels[i] for i in closest_idx]
+        predict_labels = [self.get_label(idxes) for idxes in closest_idx]
         print(Measure.get_accuracy(predict_labels, self.labels))
     
-    def evaluate(self, typ='matrix'):
+    def evaluate(self, typ='matrix', voter=10):
         if typ != 'all':
-            self.eval(typ)
+            self.eval(typ, voter=voter)
         else:
             for typ in ["matrix","kdtree","lsh","nn"]:
-                self.eval(typ)
-Measure().evaluate(typ="all")
+                self.eval(typ, voter=voter)
+Measure().evaluate(typ="all", voter=10)

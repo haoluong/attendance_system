@@ -3,7 +3,7 @@ import numpy as np
 import time
 from modules.utils import preprocess_input, l2_norm
 print(tf.__version__)
-THRESHOLD = 40
+THRESHOLD = 1
 class MobileNetV2():
     def __init__(self, checkpoint_path, storage):
         self.model = self.__load_model(checkpoint_path)
@@ -42,8 +42,8 @@ class MobileNetV2():
             same_label_idx = np.where(self.labels == predict_label)[0]
             same_label_idx = np.delete(same_label_idx, np.where(same_label_idx == min_dis_idx)[0])
             filter_dis = np.delete(dis_,same_label_idx)
-            func = np.vectorize(lambda x: np.exp(-x*50))
-            prob = np.exp(-dis_[min_dis_idx]*50)/np.sum(func(filter_dis))
+            func = np.vectorize(lambda x: np.exp(-x*36))
+            prob = np.exp(-dis_[min_dis_idx]*36)/np.sum(func(filter_dis))
 
         # return labels[np.argmin(dis_)], np.amin(dis_)
         return predict_label, prob

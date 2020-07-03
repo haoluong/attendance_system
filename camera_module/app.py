@@ -237,7 +237,7 @@ def attend():
          # add the output predictions to our data
          # dictionary so we can return it to the client
          output = json.loads(output.decode("utf-8"))
-         print("RESULTS", output["label"])
+         print("RESULTS", output["label"], output["prob"])
          if output["label"] != 'unknown':
             std = student_info.find_one({"std_id":output["label"]})
             data["std_id"] = output["label"]
