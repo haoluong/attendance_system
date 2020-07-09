@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Webcam from "react-webcam";
-import { transitions, positions, Provider as AlertProvider } from 'react-alert'
+import History from '../../components/History/history';
 import Header from "../../components/Header/header";
 import { Form, Button, Segment, Modal, Image, Grid, Icon, Label } from 'semantic-ui-react';
 import Axios from 'axios';
@@ -29,12 +29,10 @@ class NewStudent extends Component {
             avatar: '',
             images: [],
             imageCaptured: '',
-            openCam: false,
-            camHidden: false,
-            imgHidden: true,
-            image_link: '',
+            image_link: [],
             inputHidden: true,
-            colorActive: ''
+            colorActive: '',
+            openModal: false
         }
         this.onChange = this.onChange.bind(this);
         this.onMultipleChange = this.onMultipleChange.bind(this);
@@ -64,7 +62,7 @@ class NewStudent extends Component {
             Axios.post('http://127.0.0.1:9999/newstudent', formData, { headers: { 'content-type': 'multipart/form-data' } })
                 .then((res) => {
                     if (res.data.status === true) {
-                        this.setState({ openModalSuccess: true })
+                        History.push('/studentlist')
                     }
                     else {
                         this.setState({ openModalError: true })
@@ -97,16 +95,25 @@ class NewStudent extends Component {
     btnCapture = (event) => {
         event.preventDefault();
         let link_created = this.webcam.getScreenshot();
+        let image_link_clone = this.state.image_link
+        let images_clone = this.state.images
+        image_link_clone.push(link_created)
+        images_clone.push(link_created)
         this.setState({
-            image_link: link_created,
+            image_link: image_link_clone,
             avatar: link_created,
-            images: [link_created],
+            images: images_clone,
             inputHidden: false
         })
     };
     btnAdd = (event) => {
         this.setState({
-            openCam: true
+            openModal:true
+        })
+    }
+    btnDone = (event) => {
+        this.setState({
+            openModal:false
         })
     }
 
@@ -157,8 +164,8 @@ class NewStudent extends Component {
                         multiple="multiple"
                         onChange={this.onMultipleChange} />
                     <h5 type="text" id="file" hidden={this.state.inputHidden} style={{color:"green"}}>Đã chọn ảnh </h5>
-                    <Modal trigger={<Button>Thêm ảnh</Button>} basic size='small'>
-                        <Grid>
+                    <Modal trigger={<Button onClick={this.btnAdd}>Thêm ảnh</Button>} basic size='small' open={this.state.openModal}>
+                        {/* <Grid>
                             <Grid.Row stretched >
                                 <Grid.Column width={7}>
                                     <Webcam
@@ -177,28 +184,52 @@ class NewStudent extends Component {
                                     <Button onClick={this.btnCapture}>Chụp màn hình</Button>
                                 </Grid.Column>
                             </Grid.Row>
+                        </Grid> */}
+
+                        <Grid textAlign='center' mverticalAlign='middle' >
+                            <Grid.Row columns={1} >
+                                <Grid.Column>
+                                    <Webcam
+                                        mirrored={true}
+                                        audio={false}
+                                        ref={this.setRef}
+                                        screenshotFormat="image/jpeg"
+                                        videoConstraints={videoConstraints} />
+                                </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row columns={1} >
+                                <Grid.Column>
+                                    <Button onClick={this.btnCapture}>Chụp màn hình</Button>
+                                </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row columns={5} >
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[0]} size='medium' />
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[1]} size='medium' />
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[2]} size='medium' />
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[3]} size='medium' />
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[4]} size='medium' />
+                                </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row>
+                                <Grid.Column>
+                                    <Button onClick={this.btnDone}>Hoàn thành</Button>
+                                </Grid.Column>
+                            </Grid.Row>
                         </Grid>
                     </Modal>
-                    {/* <Form.Checkbox
-                    label='I agree to the Terms and Conditions'
-                    error={{
-                        content: 'You must agree to the terms and conditions',
-                        pointing: 'left',
-                    }}
-                /> */}
                     <Segment basic textAlign={"center"}>
                         <Button style={{ textAlign: "center" }} color='blue' onClick={this.handleSubmit}>Xác nhận</Button>
                     </Segment>
                 </Segment>
-                <Modal open={this.state.openModalSuccess} onClose={this.closeModal} basic size='small'>
-                    {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
-                    <Modal.Content>
-                        <p>Đăng ký thông tin sinh viên thành công!</p>
-                    </Modal.Content>
-                    <Modal.Actions>
-                        <Button color='blue' inverted onClick={this.closeModal}>OK</Button>
-                    </Modal.Actions>
-                </Modal>
                 <Modal open={this.state.openModalError} onClose={this.closeModal} basic size='small'>
                     {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
                     <Modal.Content>
