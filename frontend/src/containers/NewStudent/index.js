@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Webcam from "react-webcam";
-import { transitions, positions, Provider as AlertProvider } from 'react-alert'
+import History from '../../components/History/history';
 import Header from "../../components/Header/header";
 import { Form, Button, Segment, Modal, Image, Grid, Icon } from 'semantic-ui-react';
 import Axios from 'axios';
@@ -31,7 +31,7 @@ class NewStudent extends Component {
             openCam: false,
             camHidden: false,
             imgHidden: true,
-            image_link: '',
+            image_link: [],
             inputHidden: true,
             colorActive: ''
         }
@@ -49,7 +49,7 @@ class NewStudent extends Component {
             this.setState({
                 colorActive: 'red'
             })
-            icon={display:'inline-block'}
+            icon = { display: 'inline-block' }
         }
         else {
             for (var x = 0; x < this.state.images.length; x++) {
@@ -63,7 +63,7 @@ class NewStudent extends Component {
             Axios.post('http://127.0.0.1:9999/newstudent', formData, { headers: { 'content-type': 'multipart/form-data' } })
                 .then((res) => {
                     if (res.data.status === true) {
-                        this.setState({ openModalSuccess: true })
+                        History.push('/studentlist')
                     }
                     else {
                         this.setState({ openModalError: true })
@@ -96,16 +96,24 @@ class NewStudent extends Component {
     btnCapture = (event) => {
         event.preventDefault();
         let link_created = this.webcam.getScreenshot();
+        let image_link_clone = this.state.image_link
+        let images_clone = this.state.images
+        image_link_clone.push(link_created)
+        images_clone.push(link_created)
         this.setState({
-            image_link: link_created,
+            image_link: image_link_clone,
             avatar: link_created,
-            images: [link_created],
-            inputHidden: false
+            images: images_clone,
         })
     };
     btnAdd = (event) => {
         this.setState({
             openCam: true
+        })
+    }
+    btnDone = (event) => {
+        this.setState({
+            openCam: false
         })
     }
 
@@ -136,7 +144,7 @@ class NewStudent extends Component {
                         label='Phòng'
                         onChange={(event) => this.setState({ std_room: event.target.value })}
                     />
-                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon}/>Hình đại diện</h5>
+                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon} />Hình đại diện</h5>
                     <Form.Input
                         fluid
                         type="file"
@@ -144,7 +152,7 @@ class NewStudent extends Component {
                         name="avatar"
                         onChange={this.onChange} />
                     <h5 type="text" id="file" hidden={this.state.inputHidden}>Đã chọn ảnh </h5>
-                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon}/>Danh sách ảnh định danh</h5>
+                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon} />Danh sách ảnh định danh</h5>
                     <Form.Input
                         fluid
                         type="file"
@@ -154,7 +162,7 @@ class NewStudent extends Component {
                         onChange={this.onMultipleChange} />
                     <h5 type="text" id="file" hidden={this.state.inputHidden}>Đã chọn ảnh </h5>
                     <Modal trigger={<Button>Thêm ảnh</Button>} basic size='small'>
-                        <Grid>
+                        {/* <Grid>
                             <Grid.Row stretched >
                                 <Grid.Column width={7}>
                                     <Webcam
@@ -173,28 +181,52 @@ class NewStudent extends Component {
                                     <Button onClick={this.btnCapture}>Chụp màn hình</Button>
                                 </Grid.Column>
                             </Grid.Row>
+                        </Grid> */}
+
+                        <Grid textAlign='center' >
+                            <Grid.Row columns={1} >
+                                <Grid.Column>
+                                    <Webcam
+                                        mirrored={true}
+                                        audio={false}
+                                        ref={this.setRef}
+                                        screenshotFormat="image/jpeg"
+                                        videoConstraints={videoConstraints} />
+                                </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row columns={1} >
+                                <Grid.Column>
+                                    <Button onClick={this.btnCapture}>Chụp màn hình</Button>
+                                </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row columns={5} >
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[0]} size='large' />
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[1]} size='large' />
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[2]} size='large' />
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[3]} size='large' />
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Image src={this.state.image_link[4]} size='large' />
+                                </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row>
+                                <Grid.Column>
+                                    <Button onClick={this.btnDone}>Hoàn thành</Button>
+                                </Grid.Column>
+                            </Grid.Row>
                         </Grid>
                     </Modal>
-                    {/* <Form.Checkbox
-                    label='I agree to the Terms and Conditions'
-                    error={{
-                        content: 'You must agree to the terms and conditions',
-                        pointing: 'left',
-                    }}
-                /> */}
                     <Segment basic textAlign={"center"}>
                         <Button style={{ textAlign: "center" }} color='blue' onClick={this.handleSubmit}>Xác nhận</Button>
                     </Segment>
                 </Segment>
-                <Modal open={this.state.openModalSuccess} onClose={this.closeModal} basic size='small'>
-                    {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
-                    <Modal.Content>
-                        <p>Đăng ký thông tin sinh viên thành công!</p>
-                    </Modal.Content>
-                    <Modal.Actions>
-                        <Button color='blue' inverted onClick={this.closeModal}>OK</Button>
-                    </Modal.Actions>
-                </Modal>
                 <Modal open={this.state.openModalError} onClose={this.closeModal} basic size='small'>
                     {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
                     <Modal.Content>
