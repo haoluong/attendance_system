@@ -28,9 +28,6 @@ class NewStudent extends Component {
             avatar: '',
             images: [],
             imageCaptured: '',
-            openCam: false,
-            camHidden: false,
-            imgHidden: true,
             image_link: [],
             inputHidden: true,
             colorActive: ''
@@ -106,16 +103,6 @@ class NewStudent extends Component {
             images: images_clone,
         })
     };
-    btnAdd = (event) => {
-        this.setState({
-            openCam: true
-        })
-    }
-    btnDone = (event) => {
-        this.setState({
-            openCam: false
-        })
-    }
 
     render() {
         const videoConstraints = {
