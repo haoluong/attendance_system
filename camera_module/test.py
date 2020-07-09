@@ -27,7 +27,6 @@ class Measure():
     def get_closet(anchor, source, typ='matrix', voter=10):
         if typ == 'matrix':
             closest_idx = [Measure.get_matrix_closet_idx(a, source, voter) for a in anchor]
-            print(np.array(closest_idx).shape)
         elif typ == 'kdtree':
             tree = KDTree(source)
             closest_idx = [tree.query(a[np.newaxis,...], k=voter, return_distance=False)[0] for a in anchor] #shape (anchor.shape[0],2)
@@ -58,12 +57,14 @@ class Measure():
         return max(set(labels), key = labels.count) 
 
     def eval(self, typ='matrix', voter=10):
+        anchor = self.embeds
+        anchor_label = self.labels
         start = time.time()
-        closest_idx = Measure.get_closet(self.embeds, self.embeds, typ=typ, voter=10)
+        closest_idx = Measure.get_closet(anchor, self.embeds, typ=typ, voter=voter)
         end = time.time() - start
-        print("{} query {} times from {} takes {}s - {}s in average".format(typ, self.embeds.shape[0], self.embeds.shape[0], end, end/self.embeds.shape[0]))
+        print("{} query {} times from {} takes {}s - {}s in average".format(typ, anchor.shape[0], self.embeds.shape[0], end, end/self.embeds.shape[0]))
         predict_labels = [self.get_label(idxes) for idxes in closest_idx]
-        print(Measure.get_accuracy(predict_labels, self.labels))
+        print(Measure.get_accuracy(predict_labels, anchor_label))
     
     def evaluate(self, typ='matrix', voter=10):
         if typ != 'all':
@@ -71,4 +72,4 @@ class Measure():
         else:
             for typ in ["matrix","kdtree","lsh","nn"]:
                 self.eval(typ, voter=voter)
-Measure().evaluate(typ="all", voter=10)
+Measure().evaluate(typ="all", voter=5)

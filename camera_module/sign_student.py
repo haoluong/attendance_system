@@ -5,6 +5,7 @@ import os
 from modules.retinaface import RetinaFace
 from modules.mobilenetv2 import MobileNetV2
 from modules.db_redis import Rediser
+from modules.db_storage import DBStorage
 
 def read_image(folder_path):
     images = []
@@ -55,6 +56,9 @@ def sign_student_web(pil_images, student_id):
     add_embeds(images, student_id)
 
 def remove_student(student_id):
+    db_mongo = DBStorage()
     db_redis = Rediser(settings)
     print("*Database connected")
+    db_mongo.remove(student_id)
     return db_redis.remove_student(student_id)
+remove_student('1512571')

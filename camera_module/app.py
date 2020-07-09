@@ -11,7 +11,7 @@ from _thread import start_new_thread
 from modules.db_redis import Rediser
 from utils.helpers import base64_decode_image,base64_encode_image
 import settings
-import redis, uuid, json
+import redis, uuid, json, time
 import base64, cv2
 import numpy as np
 # from helpers import decode_image

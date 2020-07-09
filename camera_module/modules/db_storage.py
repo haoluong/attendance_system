@@ -32,6 +32,12 @@ class DBStorage():
         his = std_history.insert_one(new_history)
         self.__write_logs("INSERT HISTORY", str(student_stt))
     
+    def remove(self, student_id):
+        student_info = self.db.student_info
+        query = {'std_id': student_id}
+        results = student_info.remove(query)
+        self.__write_logs("REMOVE", "student id = " + str(student_id))
+
     @staticmethod
     def __write_logs(action,msg):
         with open("logs/db_log.txt", "a+") as f:
