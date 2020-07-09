@@ -3,7 +3,7 @@ import numpy as np
 import time
 from modules.utils import preprocess_input, l2_norm
 print(tf.__version__)
-THRESHOLD = 40
+THRESHOLD = 1
 class MobileNetV2():
     def __init__(self, checkpoint_path, storage):
         self.model = self.__load_model(checkpoint_path)
@@ -32,20 +32,40 @@ class MobileNetV2():
         res = [self.__classify(e) for e in embeds]#self.__cosine_classify(embeds)
         return res
 
+    # def __classify(self, embeds):
+    #     dis_ = np.sqrt(np.sum(np.square(self.embeds - embeds),axis=1))
+    #     min_dis_idx = np.argmin(dis_)
+    #     predict_label = self.labels[min_dis_idx]
+    #     if dis_[min_dis_idx] > THRESHOLD:
+    #         prob = 0.01
+    #     else:
+    #         same_label_idx = np.where(self.labels == predict_label)[0]
+    #         same_label_idx = np.delete(same_label_idx, np.where(same_label_idx == min_dis_idx)[0])
+    #         filter_dis = np.delete(dis_,same_label_idx)
+    #         func = np.vectorize(lambda x: np.exp(-x*36))
+    #         prob = np.exp(-dis_[min_dis_idx]*36)/np.sum(func(filter_dis))
+
+    #     # return labels[np.argmin(dis_)], np.amin(dis_)
+    #     return predict_label, prob
+
     def __classify(self, embeds):
         dis_ = np.sqrt(np.sum(np.square(self.embeds - embeds),axis=1))
-        min_dis_idx = np.argmin(dis_)
-        predict_label = self.labels[min_dis_idx]
-        if dis_[min_dis_idx] > THRESHOLD:
+        min_dis_idx = np.argsort(dis_)[:5]
+        predict_labels = self.labels[min_dis_idx].tolist()
+        if dis_[min_dis_idx[0]] > THRESHOLD:
+            predict_label = 'unknown'
             prob = 0.01
         else:
-            same_label_idx = np.where(self.labels == predict_label)[0]
-            same_label_idx = np.delete(same_label_idx, np.where(same_label_idx == min_dis_idx)[0])
-            filter_dis = np.delete(dis_,same_label_idx)
-            func = np.vectorize(lambda x: np.exp(-x*50))
-            prob = np.exp(-dis_[min_dis_idx]*50)/np.sum(func(filter_dis))
-
-        # return labels[np.argmin(dis_)], np.amin(dis_)
+            most_label = max(set(predict_labels), key=predict_labels.count)
+            freq = predict_labels.count(most_label)
+            if freq == 1:
+                predict_label = predict_labels[0]
+                same_idxes = [min_dis_idx[0]]
+            else:
+                predict_label = most_label
+                same_idxes = [min_dis_idx[i] for i,x in enumerate(predict_labels) if x==predict_label]
+            func = lambda lst: sum(map(lambda x: np.exp(-dis_[x]*10), lst))
+            prob = func(same_idxes)/func(min_dis_idx)
         return predict_label, prob
 
     def __cosine_classify(self, embeds):

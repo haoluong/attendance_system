@@ -17,7 +17,7 @@ class DBStorage():
         self.history = self.client.history
     
     def save(self, student_stt):
-        status_collection = self.db.student_status  #lay bang users
+        status_collection = self.db.student_info  #lay bang users
         #update trang thai cua student
         query = {'std_id': student_stt.student_id}
         new_status = {
@@ -32,6 +32,12 @@ class DBStorage():
         his = std_history.insert_one(new_history)
         self.__write_logs("INSERT HISTORY", str(student_stt))
     
+    def remove(self, student_id):
+        student_info = self.db.student_info
+        query = {'std_id': student_id}
+        results = student_info.remove(query)
+        self.__write_logs("REMOVE", "student id = " + str(student_id))
+
     @staticmethod
     def __write_logs(action,msg):
         with open("logs/db_log.txt", "a+") as f:

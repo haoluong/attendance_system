@@ -11,7 +11,7 @@ from _thread import start_new_thread
 from modules.db_redis import Rediser
 from utils.helpers import base64_decode_image,base64_encode_image
 import settings
-import redis, uuid, json
+import redis, uuid, json, time
 import base64, cv2
 import numpy as np
 # from helpers import decode_image
@@ -21,7 +21,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 client = MongoClient("mongodb+srv://thesis:thesis123@cluster0-849yn.mongodb.net/test?retryWrites=true&w=majority")
 db = client.attendance_system
 user = db.users
-student_status = db.student_status
+# student_status = db.student_status
 student_info = db.student_info
 history = client.history
 redis_db = redis.StrictRedis(host=settings.REDIS_HOST,
@@ -55,7 +55,33 @@ def get_studentList():
    direction = request.args.get('direction')
    number_of_rows = request.args.get('number_of_rows')
    page = request.args.get('page')
-   and_expr = [{ '$eq': [ "$std_id",  "$$std_id" ] }]
+   # and_expr = [{ '$eq': [ "$std_id",  "$$std_id" ] }]
+   # if len(std_name) > 0:
+   #    and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_name",std_name] }, -1]})
+   # if len(std_id) > 0:
+   #    and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_id",std_id] }, -1]})
+   # if len(std_room) > 0:
+   #    and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_room",std_room] }, -1]})
+   # expr = [
+   #    {
+   #       '$lookup': 
+   #       {
+   #          'from': "student_info",
+   #          'let': { 'std_id': "$std_id", 'std_name': "$std_name", 'std_room': "$std_room"},
+   #          'as': "student",
+   #          'pipeline': [
+   #             { '$match':
+   #                { '$expr':
+   #                   { '$and':
+   #                      and_expr
+   #                   }
+   #                }
+   #             }
+   #          ],
+   #       }
+   #    }
+   # ]
+   and_expr = []
    if len(std_name) > 0:
       and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_name",std_name] }, -1]})
    if len(std_id) > 0:
@@ -63,37 +89,29 @@ def get_studentList():
    if len(std_room) > 0:
       and_expr.append({ '$gt': [{'$indexOfBytes': ["$std_room",std_room] }, -1]})
    expr = [
-      {
-         '$lookup': 
-         {
-            'from': "student_info",
-            'let': { 'std_id': "$std_id", 'std_name': "$std_name", 'std_room': "$std_room"},
-            'as': "student",
-            'pipeline': [
-               { '$match':
-                  { '$expr':
-                     { '$and':
-                        and_expr
-                     }
-                  }
-               }
-            ],
+      {'$project':{"_id":0, "avatar": 0}},
+      { '$match':
+         { '$expr':
+            { '$and':
+               and_expr
+            }
          }
       }
    ]
    if direction is not None:
       expr.append({'$sort':{sort_column: 1 if direction == 'ascending' else -1}})
-   student_records = list(student_status.aggregate(expr))
-   data = []
-   for c in student_records:
-      if (len(c["student"]) > 0):
-         new_record = {}
-         new_record["std_id"] = c["student"][0]["std_id"]
-         new_record["std_name"] = c["student"][0]["std_name"]
-         new_record["std_room"] = c["student"][0]["std_room"]
-         new_record["detected_at"] = c["detected_at"]
-         new_record["inKTX"] = c["inKTX"]
-         data.append(new_record)
+   # import pdb; pdb.set_trace()
+   student_records = student_info.aggregate(expr)
+   data = list(student_records)
+   # for c in student_records:
+   #    if (len(c["student"]) > 0):
+   #       new_record = {}
+   #       new_record["std_id"] = c["student"][0]["std_id"]
+   #       new_record["std_name"] = c["student"][0]["std_name"]
+   #       new_record["std_room"] = c["student"][0]["std_room"]
+   #       new_record["detected_at"] = c["detected_at"]
+   #       new_record["inKTX"] = c["inKTX"]
+   #       data.append(new_record)
    total = len(data)
    if number_of_rows and page:
       number_of_rows = int(number_of_rows)
@@ -145,6 +163,8 @@ def add_stdinfo():
       new_student["std_name"] = std_name
       new_student["std_room"] = std_room
       new_student["avatar"] = avatar
+      new_student["inKTX"] = True
+      new_student["detected_at"] = time.strftime('%Y-%m-%d %H:%M:%S')
       k = "sign_"+std_id
       for img in images:
          encoded_image = base64_encode_image(img.astype(np.float32))
@@ -217,7 +237,7 @@ def attend():
          # add the output predictions to our data
          # dictionary so we can return it to the client
          output = json.loads(output.decode("utf-8"))
-         print("RESULTS", output["label"])
+         print("RESULTS", output["label"], output["prob"])
          if output["label"] != 'unknown':
             std = student_info.find_one({"std_id":output["label"]})
             data["std_id"] = output["label"]

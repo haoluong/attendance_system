@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Webcam from "react-webcam";
 import History from '../../components/History/history';
 import Header from "../../components/Header/header";
-import { Form, Button, Segment, Modal, Image, Grid, Icon } from 'semantic-ui-react';
+import { Form, Button, Segment, Modal, Image, Grid, Icon, Label } from 'semantic-ui-react';
 import Axios from 'axios';
 
 
@@ -14,7 +14,24 @@ const divStyle = {
 const header = {
     textAlign: 'center'
 }
-let icon = {
+let icon_images = {
+    color: 'red',
+    display: 'none'
+}
+let icon_name = {
+    color: 'red',
+    display: 'none'
+}
+let icon_id = {
+    color: 'red',
+    display: 'none'
+}
+let icon_room = {
+    color: 'red',
+    display: 'none'
+}
+let icon_avatar = {
+    color: 'red',
     display: 'none'
 }
 
@@ -30,7 +47,8 @@ class NewStudent extends Component {
             imageCaptured: '',
             image_link: [],
             inputHidden: true,
-            colorActive: ''
+            colorActive: '',
+            openModal: false,
         }
         this.onChange = this.onChange.bind(this);
         this.onMultipleChange = this.onMultipleChange.bind(this);
@@ -40,15 +58,60 @@ class NewStudent extends Component {
     };
 
     handleSubmit = event => {
-        event.preventDefault();
+        event.preventDefault(); 
         const formData = new FormData();
-        if (this.state.images.length === 0 || this.state.avatar.length === '') {
+        let validate = true
+        if (this.state.std_name === '') {
+            this.setState({
+                colorActive: 'red',
+            })
+            validate = false
+            icon_name={display:'inline',color: 'red', right: "0%"}
+        }
+        else {
+            icon_name={display:'none'}
+        }
+        if (this.state.std_id === '') {
             this.setState({
                 colorActive: 'red'
             })
-            icon = { display: 'inline-block' }
+            validate = false
+            icon_id={display:'inline',color: 'red', right: "0%"}
         }
         else {
+            icon_id={display:'none'}
+        }
+        if (this.state.std_room === '') {
+            this.setState({
+                colorActive: 'red'
+            })
+            validate = false
+            icon_room={display:'inline',color: 'red', right: "0%"}
+        }
+        else {
+            icon_room={display:'none'}
+        }
+        if (this.state.avatar.length === '') {
+            this.setState({
+                colorActive: 'red'
+            })
+            validate = false
+            icon_avatar={display:'inline',color: 'red', right: "0%"}
+        }
+        else {
+            icon_avatar={display:'none'}
+        }
+        if (this.state.images.length === 0) {
+            this.setState({
+                colorActive: 'red'
+            })
+            validate = false
+            icon_images={display:'inline',color: 'red', right: "0%"}
+        }
+        else {
+            icon_images={display:'none'}
+        }
+        if(validate === true ) {
             for (var x = 0; x < this.state.images.length; x++) {
                 formData.append("image" + x, this.state.images[x]);
             }
@@ -60,7 +123,7 @@ class NewStudent extends Component {
             Axios.post('http://127.0.0.1:9999/newstudent', formData, { headers: { 'content-type': 'multipart/form-data' } })
                 .then((res) => {
                     if (res.data.status === true) {
-                        History.push('/studentlist')
+                        this.setState({ openModalSuccess: true })
                     }
                     else {
                         this.setState({ openModalError: true })
@@ -69,6 +132,7 @@ class NewStudent extends Component {
                     console.log(error)
                 });
         }
+        
     }
 
     closeModal = () => {
@@ -101,9 +165,22 @@ class NewStudent extends Component {
             image_link: image_link_clone,
             avatar: link_created,
             images: images_clone,
+            inputHidden: false
         })
     };
-
+    btnAdd = (event) => {
+        this.setState({
+            openModal:true
+        })
+    }
+    btnDone = (event) => {
+        this.setState({
+            openModal:false
+        })
+    }
+    btnOK = (event) => {
+        History.push("/studentlist")
+    }
     render() {
         const videoConstraints = {
             width: 640,
@@ -115,31 +192,34 @@ class NewStudent extends Component {
                 <Header />
                 <Segment style={divStyle}>
                     <h1 style={header}>Thêm sinh viên</h1>
+                    <h5>Họ và tên: <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon_name}>Thiếu thông tin</h5></h5>
                     <Form.Input
+                        required
                         fluid
-                        label='Họ và tên'
                         id='form-input-first-name'
                         onChange={(event) => this.setState({ std_name: event.target.value })}
                     />
+                    <h5>Mã số sinh viên: <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon_id}>Thiếu thông tin</h5></h5>
                     <Form.Input
+                        required
                         fluid
-                        label='Mã số sinh viên'
                         onChange={(event) => this.setState({ std_id: event.target.value })}
                     />
+                    <h5>Phòng: <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon_room}>Thiếu thông tin</h5></h5>
                     <Form.Input
+                        required
                         fluid
-                        label='Phòng'
                         onChange={(event) => this.setState({ std_room: event.target.value })}
                     />
-                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon} />Hình đại diện</h5>
+                    <h5>Hình đại diện: <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon_avatar}>Thiếu thông tin</h5></h5>
                     <Form.Input
                         fluid
                         type="file"
                         id="avatar"
                         name="avatar"
                         onChange={this.onChange} />
-                    <h5 type="text" id="file" hidden={this.state.inputHidden}>Đã chọn ảnh </h5>
-                    <h5><Icon name='warning sign' color={this.state.colorActive} style={icon} />Danh sách ảnh định danh</h5>
+                    <h5 type="text" id="file" hidden={this.state.inputHidden} style={{color:"green"}}>Đã chọn ảnh </h5>
+                    <h5>Danh sách ảnh định danh:  <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon_images}>Thiếu thông tin</h5></h5>
                     <Form.Input
                         fluid
                         type="file"
@@ -147,8 +227,8 @@ class NewStudent extends Component {
                         name="images"
                         multiple="multiple"
                         onChange={this.onMultipleChange} />
-                    <h5 type="text" id="file" hidden={this.state.inputHidden}>Đã chọn ảnh </h5>
-                    <Modal trigger={<Button>Thêm ảnh</Button>} basic size='small'>
+                    <h5 type="text" id="file" hidden={this.state.inputHidden} style={{color:"green"}}>Đã chọn ảnh </h5>
+                    <Modal trigger={<Button onClick={this.btnAdd}>Thêm ảnh</Button>} basic size='small' open={this.state.openModal}>
                         {/* <Grid>
                             <Grid.Row stretched >
                                 <Grid.Column width={7}>
@@ -170,7 +250,7 @@ class NewStudent extends Component {
                             </Grid.Row>
                         </Grid> */}
 
-                        <Grid textAlign='center' >
+                        <Grid textAlign='center'>
                             <Grid.Row columns={1} >
                                 <Grid.Column>
                                     <Webcam
@@ -188,7 +268,7 @@ class NewStudent extends Component {
                             </Grid.Row>
                             <Grid.Row columns={5} >
                                 <Grid.Column>
-                                    <Image src={this.state.image_link[0]} size='large' />
+                                    <Image src={this.state.image_link[0]} size='medium' />
                                 </Grid.Column>
                                 <Grid.Column>
                                     <Image src={this.state.image_link[1]} size='large' />
@@ -214,6 +294,15 @@ class NewStudent extends Component {
                         <Button style={{ textAlign: "center" }} color='blue' onClick={this.handleSubmit}>Xác nhận</Button>
                     </Segment>
                 </Segment>
+                <Modal open={this.state.openModalSuccess} onClose={this.closeModal} basic size='small'>
+                    {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
+                    <Modal.Content>
+                        <p>Đăng ký thông tin sinh viên thành công!</p>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button color='blue' inverted onClick={this.btnOK}>OK</Button>
+                    </Modal.Actions>
+                </Modal>
                 <Modal open={this.state.openModalError} onClose={this.closeModal} basic size='small'>
                     {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
                     <Modal.Content>

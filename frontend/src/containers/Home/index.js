@@ -46,7 +46,7 @@ class Home extends Component {
                 imgHidden: true,
                 camHidden: false
             })
-            this.interval.stop().start()
+            this.interval = setInterval(this.intervalRecog, 3000);
         }).catch((error) => {
             console.log(error)
         });
@@ -57,6 +57,7 @@ class Home extends Component {
     onChange = (event) => {
         event.preventDefault();
         let link_created = event.target.files[0] ? URL.createObjectURL(event.target.files[0]) : ''
+        clearInterval(this.interval);
         this.setState({
             image_link:link_created,
             imageCaptured: event.target.files[0],
@@ -66,31 +67,32 @@ class Home extends Component {
         });
     }
 
+    intervalRecog = () => {
+        const imageSrc = this.webcam.getScreenshot();
+        const formData = new FormData();
+        formData.append('image', imageSrc)
+        if (!this.state.camHidden)
+            Axios.post(
+                'http://127.0.0.1:9999/attend',
+                formData,
+                { headers: { 'content-type': 'multipart/form-data' } }
+            ).then((res) => {
+                let prediction = res.data
+                this.setState({
+                    student:{
+                        std_name: prediction.std_name,
+                        std_id: prediction.std_id,
+                        std_room: prediction.std_room,
+                        avatar: prediction.avatar === 'bk1.png' ? 'bk1.png':'data:image/jpeg;base64,' + prediction.avatar
+                    }
+                })
+        }).catch((error) => {
+            console.log(error)
+        });
+    }
 
     componentDidMount() {
-        this.interval = setInterval(() => {
-            const imageSrc = this.webcam.getScreenshot();
-            const formData = new FormData();
-            formData.append('image', imageSrc)
-            if (!this.state.camHidden)
-                Axios.post(
-                    'http://127.0.0.1:9999/attend',
-                    formData,
-                    { headers: { 'content-type': 'multipart/form-data' } }
-                ).then((res) => {
-                    let prediction = res.data
-                    this.setState({
-                        student:{
-                            std_name: prediction.std_name,
-                            std_id: prediction.std_id,
-                            std_room: prediction.std_room,
-                            avatar: prediction.avatar === 'bk1.png' ? 'bk1.png':'data:image/jpeg;base64,' + prediction.avatar
-                        }
-                    })
-            }).catch((error) => {
-                console.log(error)
-            });
-        }, 3000);
+        this.interval = setInterval(this.intervalRecog, 3000);
     }
 
 
