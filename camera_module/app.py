@@ -45,7 +45,7 @@ def login():
 # def get_camera():
 #    image = request.files["image"].read()
 
-@app.route("/studentlist", methods=["GET"])
+@app.route("/studentlist", methods=["GET","POST"])
 @cross_origin()
 def get_studentList():
    std_name = request.args.get('std_name')
@@ -124,6 +124,14 @@ def get_studentList():
 #    id_edt = request.form['std_id']
 #    name_edt = request.form['std_name']
 #    room_edt = request.form['std_room']
+@app.route("/del_student", methods=["POST"])
+@cross_origin()
+def delete_std():
+   del_stdId = request.get_json()['id']
+   del_query = {'std_id':del_stdId}
+   student_info.delete_one(del_query)
+   data = {"success": True}
+   return jsonify(data)
 
 def read_img_buffer(buffer, is_captured=False):
    if is_captured:

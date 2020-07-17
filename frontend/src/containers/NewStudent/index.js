@@ -48,7 +48,7 @@ class NewStudent extends Component {
             image_link: [],
             inputHidden: true,
             colorActive: '',
-            openModal: false,
+            openModal: false
         }
         this.onChange = this.onChange.bind(this);
         this.onMultipleChange = this.onMultipleChange.bind(this);
@@ -75,7 +75,6 @@ class NewStudent extends Component {
             this.setState({
                 colorActive: 'red'
             })
-            validate = false
             icon_id={display:'inline',color: 'red', right: "0%"}
         }
         else {
@@ -196,7 +195,6 @@ class NewStudent extends Component {
                     <Form.Input
                         required
                         fluid
-                        id='form-input-first-name'
                         onChange={(event) => this.setState({ std_name: event.target.value })}
                     />
                     <h5>Mã số sinh viên: <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon_id}>Thiếu thông tin</h5></h5>
@@ -271,16 +269,16 @@ class NewStudent extends Component {
                                     <Image src={this.state.image_link[0]} size='medium' />
                                 </Grid.Column>
                                 <Grid.Column>
-                                    <Image src={this.state.image_link[1]} size='large' />
+                                    <Image src={this.state.image_link[1]} size='medium' />
                                 </Grid.Column>
                                 <Grid.Column>
-                                    <Image src={this.state.image_link[2]} size='large' />
+                                    <Image src={this.state.image_link[2]} size='medium' />
                                 </Grid.Column>
                                 <Grid.Column>
-                                    <Image src={this.state.image_link[3]} size='large' />
+                                    <Image src={this.state.image_link[3]} size='medium' />
                                 </Grid.Column>
                                 <Grid.Column>
-                                    <Image src={this.state.image_link[4]} size='large' />
+                                    <Image src={this.state.image_link[4]} size='medium' />
                                 </Grid.Column>
                             </Grid.Row>
                             <Grid.Row>
