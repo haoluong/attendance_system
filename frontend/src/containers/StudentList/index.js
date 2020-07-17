@@ -3,6 +3,7 @@ import Header from "../../components/Header/header";
 import { Table, Form, Pagination, Search, Grid, Menu, Modal, Image, Dropdown, Icon, Input, Button } from 'semantic-ui-react';
 import Axios from 'axios';
 import _ from 'lodash'
+import History from '../../components/History/history';
 const initialState = { isLoading: false, results: [], value: '' }
 
 const numofRow = [
@@ -51,7 +52,10 @@ class StudentList extends Component {
             btnHidden: true,
             tempName: '',
             tempId: '',
-            tempRoom: ''
+            tempRoom: '',
+            modalDelete: false,
+            openModalSuccess: false,
+            openModalError:false
         }
     }
 
@@ -289,6 +293,46 @@ class StudentList extends Component {
         })
     }
 
+
+    btnDelete = (event) => {
+        this.setState({
+            modalDelete: true
+        })
+    }
+    btnOKDel = (event) => {
+        event.preventDefault();
+        const del_std = {
+            id: this.state.selectedStudent.std_id
+        };
+        Axios.post('http://127.0.0.1:9999/del_student', del_std)
+            .then((res) => {
+                if (res.data["success"]) {
+                    this.setState({ openModalSuccess: true })
+                }
+                else {
+                    this.setState({ openModalError: true })
+                }
+            }).catch((error) => {
+                console.log(error)
+            });
+
+    }
+
+    btnConfirm = () => {
+        window.location.reload()
+    }
+
+    close = () => {
+        this.setState({
+            modalDelete: false
+        })
+    }
+
+    closeModal = () => {
+        this.setState({ openModalSuccess: false, openModalError: false })
+        window.location.reload();
+    }
+
     componentDidMount() {
         this.query_student(this.state)
     }
@@ -299,17 +343,18 @@ class StudentList extends Component {
             <Form className="segment centered" >
                 <Modal open={this.state.openModal} onClose={this.closeModal} className="segment centered">
                     <Modal.Header>Lịch sử hoạt động
-                    <Button icon='edit' onClick={this.btnUpdate} floated='right'></Button>
+                    <Button icon='user delete' onClick={this.btnDelete} floated='right' color='red'></Button>
+                        <Button icon='edit' onClick={this.btnUpdate} floated='right' color='blue'></Button>
                     </Modal.Header>
                     <Modal.Content image>
                         <Image width="260" height="260" wrapped src={this.state.selectedStudent.avatar} />
                         <Modal.Description>
                             <h4 >Họ và tên:</h4><Input disabled={this.state.enableInput} value={this.state.tempName} type="text" onChange={this.editName} />
                             <h4>MSSV:</h4><Input disabled={this.state.enableInput} value={this.state.tempId} type='text' onChange={this.editId} />
-                            <h4>Phòng: </h4><Input disabled={this.state.enableInput} value={this.state.tempRoom} type="text" onChange={this.editRoom}/>
+                            <h4>Phòng: </h4><Input disabled={this.state.enableInput} value={this.state.tempRoom} type="text" onChange={this.editRoom} />
                             <Button.Group floated='right' >
                                 <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark' onClick={this.btnOK} /> Yes</Button>
-                                <Button color='red' inverted basic={this.state.btnHidden} floated='right' onClick={this.btnCancel}><Icon name='remove'  /> No</Button>
+                                <Button color='red' inverted basic={this.state.btnHidden} floated='right' onClick={this.btnCancel}><Icon name='remove' /> No</Button>
                             </Button.Group>
                         </Modal.Description>
                     </Modal.Content>
@@ -400,7 +445,7 @@ class StudentList extends Component {
                 <Table sortable celled >
 
                     <Table.Header>
-                        <Table.HeaderCell colSpan={5} style={{ textAlign: 'center', fontSize: '30px', backgroundColor: 'CornflowerBlue' }}>BẢNG ĐIỂM DANH SINH VIÊN</Table.HeaderCell>
+                        <Table.HeaderCell colSpan={6} style={{ textAlign: 'center', fontSize: '30px', backgroundColor: 'CornflowerBlue' }}>BẢNG ĐIỂM DANH SINH VIÊN</Table.HeaderCell>
                         <Table.Row>
                             <Table.HeaderCell sorted={column === 'std_name' ? direction : null} onClick={this.handleSort("std_name")}>Họ và tên</Table.HeaderCell>
                             <Table.HeaderCell sorted={column === 'std_id' ? direction : null} onClick={this.handleSort("std_id")}>MSSV</Table.HeaderCell>
@@ -423,7 +468,7 @@ class StudentList extends Component {
 
                     <Table.Footer>
                         <Table.Row >
-                            <Table.HeaderCell colSpan='5'>
+                            <Table.HeaderCell colSpan='6'>
                                 <Dropdown options={numofRow} value={this.state.number_of_rows} selection closeOnChange={true} onChange={this.onResultSelect} />
                                 <Menu floated='right' pagination>
                                     <Pagination
@@ -439,9 +484,35 @@ class StudentList extends Component {
                             </Table.HeaderCell>
                         </Table.Row>
                     </Table.Footer>
-
                 </Table>
-
+                <Modal size='mini' open={this.state.modalDelete} onClose={this.close}>
+                    <Modal.Header>Xoá thông tin sinh viên</Modal.Header>
+                    <Modal.Content>
+                        <p>Bạn chắc chắn muốn xóa thông tin sinh viên này?</p>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button color="red" inverted onClick={this.close}>Từ chối</Button>
+                        <Button color="blue" inverted onClick={this.btnOKDel}>Xác nhận</Button>
+                    </Modal.Actions>
+                </Modal>
+                <Modal open={this.state.openModalSuccess} onClose={this.closeModal} basic size='small'>
+                    {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
+                    <Modal.Content>
+                        <p>Xóa thông tin sinh viên thành công!</p>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button color='blue' inverted onClick={this.btnConfirm}>OK</Button>
+                    </Modal.Actions>
+                </Modal>
+                <Modal open={this.state.openModalError} onClose={this.closeModal} basic size='small'>
+                    {/* <Modal.Header icon='archive' content='Archive Old Messages' /> */}
+                    <Modal.Content>
+                        <p>Xóa thông tin sinh viên thất bại!</p>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button color='blue' inverted onClick={this.closeModal}>OK</Button>
+                    </Modal.Actions>
+                </Modal>
             </Form>
         )
     };
