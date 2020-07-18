@@ -48,7 +48,7 @@ class NewStudent extends Component {
             image_link: [],
             inputHidden: true,
             colorActive: '',
-            openModal: false,
+            openModal: false
         }
         this.onChange = this.onChange.bind(this);
         this.onMultipleChange = this.onMultipleChange.bind(this);
@@ -196,7 +196,6 @@ class NewStudent extends Component {
                     <Form.Input
                         required
                         fluid
-                        id='form-input-first-name'
                         onChange={(event) => this.setState({ std_name: event.target.value })}
                     />
                     <h5>Mã số sinh viên: <h5 style={{color: "red", display:"inline"}}>*</h5><h5 style={icon_id}>Thiếu thông tin</h5></h5>

@@ -46,6 +46,7 @@ class Home extends Component {
                 imgHidden: true,
                 camHidden: false
             })
+            console.log(this.state.student.std_name)
             this.interval = setInterval(this.intervalRecog, 3000);
         }).catch((error) => {
             console.log(error)
