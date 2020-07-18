@@ -52,6 +52,7 @@ class MobileNetV2():
         dis_ = np.sqrt(np.sum(np.square(self.embeds - embeds),axis=1))
         min_dis_idx = np.argsort(dis_)[:5]
         predict_labels = self.labels[min_dis_idx].tolist()
+        print(predict_labels)
         if dis_[min_dis_idx[0]] > THRESHOLD:
             predict_label = 'unknown'
             prob = 0.01
