@@ -120,10 +120,23 @@ def get_studentList():
       data = data[number_of_rows*(page-1):end]
    return jsonify({"data": data, "total": total})
 
-# def edit_info():
-#    id_edt = request.form['std_id']
-#    name_edt = request.form['std_name']
-#    room_edt = request.form['std_room']
+@app.route("/update_student", methods=["POST"])
+@cross_origin()
+def update_std():
+   std_info = {   
+      '$set':{
+         'std_name': request.get_json()['std_name'],
+         'std_id': request.get_json()['std_id'],
+         'std_room': request.get_json()['std_room']
+      }   
+   }
+   update_query = {'std_id': request.get_json()['std_id']}
+   res = student_info.update_one(update_query, std_info)
+   data = {"success": True}
+   if res.modified_count != 1:
+      data["success"] = False
+   return jsonify(data)
+
 @app.route("/del_student", methods=["POST"])
 @cross_origin()
 def delete_std():

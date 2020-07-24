@@ -43,11 +43,8 @@ class Home extends Component {
                     std_room: prediction.std_room,
                     avatar: prediction.avatar === 'bk1.png' ? 'bk1.png':'data:image/jpeg;base64,' + prediction.avatar
                 },
-                imgHidden: true,
-                camHidden: false
             })
-            console.log(this.state.student.std_name)
-            this.interval = setInterval(this.intervalRecog, 3000);
+            
         }).catch((error) => {
             console.log(error)
         });
@@ -67,7 +64,14 @@ class Home extends Component {
             btnDisable: link_created === '' ? true: false
         });
     }
-
+    backToCamera = () => {
+        this.setState({
+            imgHidden: true,
+            camHidden: false,
+            btnDisable: true
+        })
+        this.interval = setInterval(this.intervalRecog, 3000);
+    }
     intervalRecog = () => {
         const imageSrc = this.webcam.getScreenshot();
         const formData = new FormData();
@@ -136,6 +140,9 @@ class Home extends Component {
                             <Button as="label" htmlFor="file" type="button">Chọn hình ảnh</Button>
                                 <input type="file" id="file" hidden onChange={this.onChange} />
                             <Button primary onClick={this.recog_image} disabled={this.state.btnDisable}>Nhận dạng ảnh</Button>
+                        </Grid.Column>
+                        <Grid.Column width={8} >
+                            <Button primary onClick={this.backToCamera} disabled={this.state.btnDisable}>Quay lại camera</Button>
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

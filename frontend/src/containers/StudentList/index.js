@@ -57,6 +57,7 @@ class StudentList extends Component {
             openModalSuccess: false,
             openModalError:false
         }
+        this.btnOK = this.btnOK.bind(this)
     }
 
     handleResultSelect = (event, { result, box }) => {
@@ -147,20 +148,19 @@ class StudentList extends Component {
         Axios.get(url, { responseType: 'arraybuffer' })
             .then((res) => {
                 let base64Flag = 'data:image/jpeg;base64,';
-                let student_clone = student
                 if (res.data.byteLength > 100) {
-                    student_clone.avatar = base64Flag + this.arrayBufferToBase64(res.data)
+                    student.avatar = base64Flag + this.arrayBufferToBase64(res.data)
                 } else {
-                    student_clone.avatar = 'https://react.semantic-ui.com/images/avatar/large/rachel.png'
+                    student.avatar = 'https://react.semantic-ui.com/images/avatar/large/rachel.png'
                 }
-                // console.log(student_clone.avatar)
                 this.setState({
                     openModal: true,
-                    selectedStudent: student_clone,
-                    tempName: student_clone.std_name,
-                    tempId: student_clone.std_id,
-                    tempRoom: student_clone.std_room
+                    selectedStudent: student,
+                    tempName: student.std_name,
+                    tempId: student.std_id,
+                    tempRoom: student.std_room
                 })
+                this.tempp = student
             }).catch((error) => {
                 console.log("get avatar fail " + error)
             });
@@ -261,26 +261,34 @@ class StudentList extends Component {
             });
         }
     }
-    btnOK = (event) => {
-        event.preventDefault();
-        this.setState({
-            tempName: this.state.selectedStudent.std_name,
-            tempId: this.state.selectedStudent.std_id,
-            tempRoom: this.state.selectedStudent.std_room,
-            enableInput: true,
-            btnHidden: true
-        })
-        // Axios.post('http://127.0.0.1:9999/update_student', tempStudent)
-        //     .then((res) => {
-        //         if (res.data["success"]) {
-        //             History.push('/')
-        //         }
-        //         else {
-        //             console.log(false)
-        //         }
-        //     }).catch((error) => {
-        //         console.log(error)
-        //     });
+
+    btnOK = () => {
+        let tempStudent = {
+            std_name: this.state.tempName,
+            std_id: this.state.tempId,
+            std_room: this.state.tempRoom
+        }
+        if (!_.isEqual(tempStudent, this.state.selectedStudent))
+        {
+            Axios.post('http://127.0.0.1:9999/update_student', tempStudent)
+            .then((res) => {
+                if (res.data["success"]) {
+                    tempStudent.avatar = this.state.selectedStudent.avatar
+                    this.setState({
+                        selectedStudent: tempStudent,
+                        enableInput: true,
+                        btnHidden: true
+                    })
+                    this.tempp.std_name = tempStudent.std_name
+                    this.tempp.std_room = tempStudent.std_room
+                }
+                else {
+                    console.log(false)
+                }
+            }).catch((error) => {
+                console.log(error)
+            });
+        }
     }
 
     btnCancel = (event) => {
@@ -329,8 +337,7 @@ class StudentList extends Component {
     }
 
     closeModal = () => {
-        this.setState({ openModalSuccess: false, openModalError: false })
-        window.location.reload();
+        this.setState({ openModalSuccess: false, openModalError: false, openModal: false })
     }
 
     componentDidMount() {
@@ -350,11 +357,11 @@ class StudentList extends Component {
                         <Image width="260" height="260" wrapped src={this.state.selectedStudent.avatar} />
                         <Modal.Description>
                             <h4 >Họ và tên:</h4><Input disabled={this.state.enableInput} value={this.state.tempName} type="text" onChange={this.editName} />
-                            <h4>MSSV:</h4><Input disabled={this.state.enableInput} value={this.state.tempId} type='text' onChange={this.editId} />
+                            <h4>MSSV:</h4><Input disabled value={this.state.tempId} type='text'/>
                             <h4>Phòng: </h4><Input disabled={this.state.enableInput} value={this.state.tempRoom} type="text" onChange={this.editRoom} />
                             <Button.Group floated='right' >
-                                <Button color='blue' inverted basic={this.state.btnHidden} floated='right'><Icon name='checkmark' onClick={this.btnOK} /> Yes</Button>
-                                <Button color='red' inverted basic={this.state.btnHidden} floated='right' onClick={this.btnCancel}><Icon name='remove' /> No</Button>
+                                <Button color='blue' inverted disabled={this.state.btnHidden} basic={this.state.btnHidden} floated='right' onClick={this.btnOK} ><Icon name='checkmark'/> Yes</Button>
+                                <Button color='red' inverted disabled={this.state.btnHidden} basic={this.state.btnHidden} floated='right' onClick={this.btnCancel}><Icon name='remove' /> No</Button>
                             </Button.Group>
                         </Modal.Description>
                     </Modal.Content>
@@ -368,7 +375,7 @@ class StudentList extends Component {
 
                         <Table.Body>
                             {this.state.modal.history.map(record =>
-                                <Table.Row key={record._id}>
+                                <Table.Row key={record.detected_at}>
                                     <Table.Cell>{record.inKTX ? "Trong KTX" : "Ngoài KTX"}</Table.Cell>
                                     <Table.Cell>{record.detected_at}</Table.Cell>
                                 </Table.Row>)}

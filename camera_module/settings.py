@@ -1,8 +1,8 @@
 IMAGE_SIZE = 160
 MARGIN = 16
 CHECKPOINT_PATH = "weights/arc_mbv2_ccrop.h5" #"weights/arc_mbv2.h5" 
-ANCHOR_PATH = "weights/arc_mbv2_crop_embed.npz"
-LABEL_PATH = "weights/arc_mbv2_crop_label.npz"
+ANCHOR_PATH = "weights/july_embed.npz"
+LABEL_PATH = "weights/july_label.npz"
 CFG_RETINA = "configs/retinaface_mbv2.yaml"
 RTSP_ADDR = "rtsp://192.168.1.183:554"
 EMBED_SIZE = 512
